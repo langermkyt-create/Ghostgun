@@ -447,6 +447,12 @@ body.phone-mode .phone-actions #phoneFire{display:block}
 #menu>.ghost-frame{display:block;box-sizing:border-box;width:min(620px,100%);max-width:100%;height:auto;max-height:none!important;min-height:0;overflow:visible!important;flex:none;margin:12px auto 24px!important}
 #menu .menu-view{min-width:0}
 @media(max-height:700px){#menu{padding-top:8px!important;padding-bottom:24px!important}#menu>.ghost-frame{margin-top:8px!important;margin-bottom:18px!important}}
+
+/* FIX: закупка — отдельная прокручиваемая панель, в том числе в Android WebView. */
+#buyMenu{box-sizing:border-box;max-height:90dvh;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y!important;scrollbar-width:thin;scrollbar-color:rgba(155,140,255,.6) rgba(255,255,255,.04)}
+#buyMenu h2{position:sticky;top:-18px;z-index:2;padding:2px 0 10px;background:rgba(12,14,25,.98)}
+#buyItems{min-height:0;padding-bottom:12px}
+@media(max-width:600px){#buyMenu{inset:4% 4%;max-height:92dvh;padding:12px}#buyMenu h2{top:-12px}}
 </style>
 </head>
 <body>
@@ -1134,8 +1140,10 @@ function startMatch(m,opts){
   }
   // ensure no bot spawns on player
   state="play"; buyPhase=true; document.body.classList.add("phone-playing");
-  document.getElementById("respawnScreen").classList.remove("on");
+  /* При запуске матча закрываем оба слоя подготовки: меню и сетевое лобби. */
+  document.getElementById("lobby").classList.add("hidden");
   document.getElementById("menu").classList.add("hidden");
+  document.getElementById("respawnScreen").classList.remove("on");
   document.getElementById("endScreen").classList.add("hidden");
   document.getElementById("pauseScreen").classList.add("hidden");
   document.getElementById("hud").classList.add("on");
