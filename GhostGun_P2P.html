@@ -3446,13 +3446,13 @@ requestAnimationFrame(loop);
     " cancelable="+!!e.cancelable+" prevented="+!!e.defaultPrevented+" visibility="+document.visibilityState+" focus="+(document.hasFocus?document.hasFocus():"?");
    updateTouchDebug(e,label+(changed?" id="+changed.identifier:"")+detail,ended||"-");
   }
-  function assignTouch(t){
-   const id=t.identifier,target=touchTarget(t);
+  function assignTouch(t,eventTarget){
+   const id=t.identifier,target=touchTarget(t),origin=eventTarget||null;
    if(touchRoles.has(id))return false;
    if(target.closest&&target.closest("#buyMenu"))return false;
    const fr=fire.getBoundingClientRect();
    const fireHit=fr.width>0&&fr.height>0&&t.clientX>=fr.left&&t.clientX<=fr.right&&t.clientY>=fr.top&&t.clientY<=fr.bottom;
-   const onFire=fireHit||target===fire||(target.closest&&target.closest("#phoneFire"));
+   const onFire=fireHit||target===fire||(target.closest&&target.closest("#phoneFire"))||(origin===fire||(origin&&origin.closest&&origin.closest("#phoneFire")));
    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
    const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
    const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#phoneTouchDebugCopy");
@@ -3473,7 +3473,7 @@ requestAnimationFrame(loop);
    if(!enabled||!playing()||!api||!api.canAct())return;
    let handled=false;
    for(let i=0;i<e.changedTouches.length;i++){
-    if(assignTouch(e.changedTouches[i]))handled=true;
+    if(assignTouch(e.changedTouches[i],e.target))handled=true;
    }
    // Не даём браузеру захватить экранный жест после начала игрового касания.
    if(handled&&e.cancelable)e.preventDefault();
