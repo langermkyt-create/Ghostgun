@@ -3379,6 +3379,21 @@ requestAnimationFrame(loop);
    setKey("KeyW",dy < -max*.2);setKey("KeyS",dy > max*.2);
    setKey("KeyA",dx < -max*.2);setKey("KeyD",dx > max*.2);
   }
+  // Временная диагностика multi-touch: не перехватывает касания и не мешает управлению.
+  const touchDebug=document.createElement("div");
+  touchDebug.id="phoneTouchDebug";
+  touchDebug.style.cssText="position:fixed;left:8px;top:126px;z-index:20000;max-width:calc(100vw - 16px);padding:7px 9px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.82);color:#d9fff2;font:10px/1.45 monospace;white-space:pre-wrap;pointer-events:none;display:none";
+  document.body.appendChild(touchDebug);
+  let touchDebugLastTarget="-";
+  function updateTouchDebug(e,label){
+   if(!document.body.classList.contains("phone-mode"))return;
+   const roles=typeof touchRoles!=="undefined"?Array.from(touchRoles.entries()).map(([id,role])=>id+":"+role).join(" "):"-";
+   touchDebug.style.display="block";
+   touchDebug.textContent="TOUCH DEBUG · "+label+
+    "\nactive="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
+    "\nroles: "+(roles||"-")+"\nstickId="+stickId+" fire="+firePointers.size+
+    "\ntarget: "+touchDebugLastTarget;
+  }
   const useTouchEvents=("ontouchstart" in window)||(navigator.maxTouchPoints>0);
   if(!useTouchEvents){
    stick.addEventListener("pointerdown",e=>{
@@ -3401,7 +3416,9 @@ requestAnimationFrame(loop);
    const touchRoles=new Map();
    const point=t=>({clientX:t.clientX,clientY:t.clientY});
    function touchStart(e){
-    if(!enabled||!playing()||!api)return;
+    const first=e.changedTouches&&e.changedTouches[0];
+    if(first){const t=document.elementFromPoint(first.clientX,first.clientY);touchDebugLastTarget=t?(t.id?"#"+t.id:t.tagName.toLowerCase()):"none";}
+    if(!enabled||!playing()||!api){updateTouchDebug(e,"start (controls inactive)");return;}
     let blockBrowserGesture=false;
     for(const touch of e.changedTouches){
      const id=touch.identifier;
@@ -3427,6 +3444,7 @@ requestAnimationFrame(loop);
      // Кнопкам слотов/перезарядки/рывка/закупки оставляем стандартный click.
     }
     if(blockBrowserGesture)e.preventDefault();
+    updateTouchDebug(e,"touchstart");
    }
    function touchMove(e){
     if(!enabled||!playing()||!api)return;
@@ -3443,6 +3461,7 @@ requestAnimationFrame(loop);
      }
     }
     if(handled)e.preventDefault();
+    updateTouchDebug(e,"touchmove");
    }
    function touchEnd(e){
     for(const touch of e.changedTouches){
@@ -3456,6 +3475,7 @@ requestAnimationFrame(loop);
      }
      touchRoles.delete(id);
     }
+    updateTouchDebug(e,e.type==="touchcancel"?"touchcancel":"touchend");
    }
    window.addEventListener("touchstart",touchStart,{capture:true,passive:false});
    window.addEventListener("touchmove",touchMove,{capture:true,passive:false});
