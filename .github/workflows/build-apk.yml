@@ -1,4 +1,5 @@
 name: Build GhostGun APK
+# Rebuild requested after the previous installer artifact was deleted
 
 on:
   workflow_dispatch:
