@@ -3384,6 +3384,9 @@ requestAnimationFrame(loop);
   touchDebug.id="phoneTouchDebug";
   touchDebug.style.cssText="position:fixed;left:8px;top:126px;z-index:20000;max-width:calc(100vw - 16px);padding:7px 9px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.82);color:#d9fff2;font:10px/1.45 monospace;white-space:pre-wrap;pointer-events:none;display:none";
   document.body.appendChild(touchDebug);
+  // Показываем индикатор сразу при включении телефонного режима, а не только после касания.
+  touchDebug.style.display=document.body.classList.contains("phone-mode")?"block":"none";
+  touchDebug.textContent="TOUCH DEBUG · готов к проверке\nactive=0 changed=0\nroles: -\nstickId="+stickId+" fire=0\ntarget: -";
   let touchDebugLastTarget="-",touchDebugRoles=null;
   function updateTouchDebug(e,label){
    if(!document.body.classList.contains("phone-mode"))return;
