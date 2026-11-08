@@ -3384,10 +3384,10 @@ requestAnimationFrame(loop);
   touchDebug.id="phoneTouchDebug";
   touchDebug.style.cssText="position:fixed;left:8px;top:126px;z-index:20000;max-width:calc(100vw - 16px);padding:7px 9px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.82);color:#d9fff2;font:10px/1.45 monospace;white-space:pre-wrap;pointer-events:none;display:none";
   document.body.appendChild(touchDebug);
-  let touchDebugLastTarget="-";
+  let touchDebugLastTarget="-",touchDebugRoles=null;
   function updateTouchDebug(e,label){
    if(!document.body.classList.contains("phone-mode"))return;
-   const roles=typeof touchRoles!=="undefined"?Array.from(touchRoles.entries()).map(([id,role])=>id+":"+role).join(" "):"-";
+   const roles=touchDebugRoles?Array.from(touchDebugRoles.entries()).map(([id,role])=>id+":"+role).join(" "):"-";
    touchDebug.style.display="block";
    touchDebug.textContent="TOUCH DEBUG · "+label+
     "\nactive="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
@@ -3413,7 +3413,7 @@ requestAnimationFrame(loop);
   // На Android используем Touch Events: они надёжнее сохраняют три независимых касания
   // в WebView/Chrome. На устройствах без touch API остаётся Pointer Events.
   if(useTouchEvents){
-   const touchRoles=new Map();
+   const touchRoles=new Map();touchDebugRoles=touchRoles;
    const point=t=>({clientX:t.clientX,clientY:t.clientY});
    function touchStart(e){
     const first=e.changedTouches&&e.changedTouches[0];
