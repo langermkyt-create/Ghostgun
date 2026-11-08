@@ -3324,7 +3324,6 @@ window.__ghostPhoneAPI = {
   setPhoneFireDown: v => { phoneFireHeld = !!v; },
   canAct: () => state === "play",
   reload: () => { if (state === "play") startReload(player); },
-  dash: () => { if (state === "play") dashPlayer(); },
   look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },
   switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },
   resetPhone: () => { mouseDown=false;phoneFireHeld=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
