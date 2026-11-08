@@ -3438,6 +3438,7 @@ requestAnimationFrame(loop);
     const id=t.identifier;
     if(onFire){
      firePointers.add(id);touchRoles.set(id,"fire");
+     lookPointers.set(id,{x:t.clientX,y:t.clientY});
      if(api)api.setMouseDown(true);
      fire.classList.add("active");
     }else if(onStick){
