@@ -39,6 +39,19 @@ jobs:
       - name: Generate Android project
         run: |
           npx cap add android
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          source = manifest.read_text()
+          def lock_activity(match):
+              attrs = re.sub(r'\sandroid:screenOrientation="[^"]*"', "", match.group(1))
+              return '<activity' + attrs + ' android:screenOrientation="landscape">'
+          updated, count = re.subn(r'<activity\b([^>]*)>', lock_activity, source, count=1)
+          if count != 1:
+              raise SystemExit("Could not locate the Android main activity in AndroidManifest.xml")
+          manifest.write_text(updated)
+          PY
           npx cap sync android
 
       - name: Build debug APK
