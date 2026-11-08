@@ -1165,6 +1165,7 @@ function startMatch(m,opts){
   /* При запуске матча закрываем оба слоя подготовки: меню и сетевое лобби. */
   document.getElementById("lobby").classList.add("hidden");
   document.getElementById("menu").classList.add("hidden");
+  document.getElementById("menu").style.setProperty("display","none","important");
   document.getElementById("respawnScreen").classList.remove("on");
   document.getElementById("endScreen").classList.add("hidden");
   document.getElementById("pauseScreen").classList.add("hidden");
@@ -3306,7 +3307,7 @@ function statText(el, txt){ if(el) el.innerHTML='<span>'+txt+'</span>'; }
     else { SFX.init(); Net.join(code); }
   },350);
 })();
-document.getElementById("lobbyLeave").addEventListener("click",()=>{ Net.leave(); document.getElementById("menu").classList.remove("hidden"); state="menu"; if(typeof showMenuView==="function") showMenuView("homeView"); });
+document.getElementById("lobbyLeave").addEventListener("click",()=>{ Net.leave(); document.getElementById("menu").style.removeProperty("display"); document.getElementById("menu").classList.remove("hidden"); state="menu"; if(typeof showMenuView==="function") showMenuView("homeView"); });
 /* ---------- НАДЁЖНЫЙ ЗАПУСК МАТЧА ---------- */
 function showFatal(msg){
   // Не показываем всплывающий баннер ошибки пользователю.
@@ -3382,9 +3383,9 @@ document.addEventListener("click",e=>{
 
 document.getElementById("playBtn").addEventListener("click",()=>{ SFX.init(); safeStart(mode); });
 document.getElementById("againBtn").addEventListener("click",()=>{ SFX.init(); safeStart(mode); });
-document.getElementById("menuBtn").addEventListener("click",()=>{ state="menu"; document.body.classList.remove("phone-playing"); closeBuyMenu(); document.getElementById("endScreen").classList.add("hidden"); document.getElementById("hud").classList.remove("on"); document.getElementById("menu").classList.remove("hidden"); if(typeof showMenuView==="function") showMenuView("homeView"); });
+document.getElementById("menuBtn").addEventListener("click",()=>{ state="menu"; document.body.classList.remove("phone-playing"); closeBuyMenu(); document.getElementById("endScreen").classList.add("hidden"); document.getElementById("hud").classList.remove("on"); document.getElementById("menu").style.removeProperty("display"); document.getElementById("menu").classList.remove("hidden"); if(typeof showMenuView==="function") showMenuView("homeView"); });
 document.getElementById("resumeBtn").addEventListener("click",()=>{ togglePause(); tryLock(); });
-document.getElementById("quitBtn").addEventListener("click",()=>{ state="menu"; document.body.classList.remove("phone-playing"); closeBuyMenu(); document.getElementById("pauseScreen").classList.add("hidden"); document.getElementById("hud").classList.remove("on"); document.getElementById("menu").classList.remove("hidden"); if(typeof showMenuView==="function") showMenuView("homeView"); mouseDown=false; try{document.exitPointerLock&&document.exitPointerLock();}catch(e){} });
+document.getElementById("quitBtn").addEventListener("click",()=>{ state="menu"; document.body.classList.remove("phone-playing"); closeBuyMenu(); document.getElementById("pauseScreen").classList.add("hidden"); document.getElementById("hud").classList.remove("on"); document.getElementById("menu").style.removeProperty("display"); document.getElementById("menu").classList.remove("hidden"); if(typeof showMenuView==="function") showMenuView("homeView"); mouseDown=false; try{document.exitPointerLock&&document.exitPointerLock();}catch(e){} });
 
 function togglePause(){
   if(state==="play"){ state="pause"; document.body.classList.remove("phone-playing"); document.getElementById("pauseScreen").classList.remove("hidden"); try{document.exitPointerLock&&document.exitPointerLock();}catch(e){} mouseDown=false; }
