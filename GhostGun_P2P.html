@@ -3369,6 +3369,16 @@ requestAnimationFrame(loop);
   let enabled=false, stickId=null, lookPointers=new Map(), firePointers=new Set();
   const api=window.__ghostPhoneAPI;
   const playing=()=>!!(api&&api.isPlaying());
+  // Кнопки действий обрабатываются отдельным click: сенсорные события
+  // игрового управления не должны перехватывать обычные кнопки интерфейса.
+  reload.addEventListener("click",e=>{
+   e.preventDefault();e.stopPropagation();
+   if(enabled&&playing()&&api)api.reload();
+  });
+  dash.addEventListener("click",e=>{
+   e.preventDefault();e.stopPropagation();
+   if(enabled&&playing()&&api)api.dash();
+  });
   const setKey=(k,v)=>{if(api)api.setKey(k,v);};
   const releaseKeys=()=>["KeyW","KeyA","KeyS","KeyD"].forEach(k=>setKey(k,false));
   function clearMove(){stickId=null;releaseKeys();knob.style.transform="translate(0px,0px)";}
