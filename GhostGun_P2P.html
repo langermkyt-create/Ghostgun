@@ -3396,69 +3396,11 @@ requestAnimationFrame(loop);
    setKey("KeyW",dy < -max*.2);setKey("KeyS",dy > max*.2);
    setKey("KeyA",dx < -max*.2);setKey("KeyD",dx > max*.2);
   }
-  // Временная диагностика multi-touch: не перехватывает касания и не мешает управлению.
-  const touchDebug=document.createElement("div");
-  touchDebug.id="phoneTouchDebug";
-  touchDebug.style.cssText="position:fixed;left:50%;top:48px;transform:translateX(-50%);z-index:20000;width:min(420px,calc(100vw - 16px));max-height:20vh;overflow:hidden;padding:6px 8px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.88);color:#d9fff2;font:9px/1.35 monospace;white-space:pre-wrap;pointer-events:none;display:none";
-  const touchDebugCopy=document.createElement("button");
-  touchDebugCopy.id="phoneTouchDebugCopy";touchDebugCopy.type="button";
-  touchDebugCopy.textContent="КОПИРОВАТЬ ЛОГ";
-  touchDebugCopy.style.cssText="position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:20001;padding:6px 10px;border:1px solid #72e6c0;border-radius:7px;background:#142b29;color:#d9fff2;font:bold 9px monospace;pointer-events:auto;display:none";
-  document.body.appendChild(touchDebugCopy);
-  let touchDebugSnapshot="Диагностика ещё не запускалась.";
-  const touchDebugHistory=[];
-  function copyTouchDebugFallback(value){
-   const area=document.createElement("textarea");area.value=value;area.style.cssText="position:fixed;left:-9999px;top:0";
-   document.body.appendChild(area);area.select();
-   try{document.execCommand("copy");touchDebugCopy.textContent="СКОПИРОВАНО";}catch(_){touchDebugCopy.textContent="НЕ УДАЛОСЬ СКОПИРОВАТЬ";}
-   area.remove();
-  }
-  touchDebugCopy.addEventListener("click",()=>{
-   const value=touchDebugSnapshot;
-   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(value).then(()=>{touchDebugCopy.textContent="СКОПИРОВАНО";}).catch(()=>copyTouchDebugFallback(value));
-   else copyTouchDebugFallback(value);
-  });
-  document.body.appendChild(touchDebug);
-  // Показываем индикатор сразу при включении телефонного режима, а не только после касания.
-  touchDebug.style.display=document.body.classList.contains("phone-mode")?"block":"none";
-  touchDebugCopy.style.display=document.body.classList.contains("phone-mode")?"block":"none";
-  touchDebug.textContent="TOUCH DEBUG · готов к проверке\\nactive=0 changed=0\\nroles: -\\nstickId="+stickId+" fire=0\\ntarget: -";
-  let touchDebugLastTarget="-",touchDebugRoles=null;
-  function updateTouchDebug(e,label,endedRoles){
-   if(!document.body.classList.contains("phone-mode"))return;
-   const roles=touchDebugRoles?Array.from(touchDebugRoles.entries()).map(([id,role])=>id+":"+role).join(" "):"-";
-   const line=new Date().toLocaleTimeString()+" | "+label+
-    " | active="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
-    " | roles="+(roles||"-")+" | ended="+(endedRoles||"-")+
-    " | stickId="+stickId+" fire="+firePointers.size+" | target="+touchDebugLastTarget;
-   touchDebugHistory.push(line);if(touchDebugHistory.length>30)touchDebugHistory.shift();
-   touchDebug.style.display="block";touchDebugCopy.style.display="block";
-   touchDebugSnapshot="Последние события диагностики (сверху старые, снизу новые):\n"+touchDebugHistory.join("\n");
-   touchDebug.textContent="TOUCH DEBUG · "+label+
-    "\nactive="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
-    "\nroles: "+(roles||"-")+"\nended: "+(endedRoles||"-")+"\nstickId="+stickId+" fire="+firePointers.size+
-    "\ntarget: "+touchDebugLastTarget+"\nсобытий в истории: "+touchDebugHistory.length;
-  }
   // Телефонное управление работает напрямую через Touch Events.
   // Каждый палец отслеживается по Touch.identifier; Pointer Events здесь не используются.
-  const touchRoles=new Map();touchDebugRoles=touchRoles;
-  function touchTarget(t){
-   const el=document.elementFromPoint(t.clientX,t.clientY)||t.target;
-   touchDebugLastTarget=el?(el.id?"#"+el.id:el.tagName.toLowerCase()):"none";
-   return el;
-  }
-  function touchLog(e,label,ended){
-   const changed=e.changedTouches&&e.changedTouches.length?e.changedTouches[0]:null;
-   if(changed)touchTarget(changed);
-   const rawTarget=e.target?(e.target.id?"#"+e.target.id:e.target.tagName.toLowerCase()):"none";
-   const changedInfo=e.changedTouches?Array.from(e.changedTouches).map(t=>t.identifier+"@"+Math.round(t.clientX)+","+Math.round(t.clientY)).join(" "):"-";
-   const activeInfo=e.touches?Array.from(e.touches).map(t=>t.identifier+"@"+Math.round(t.clientX)+","+Math.round(t.clientY)).join(" "):"-";
-   const detail=" | raw="+rawTarget+" changedAt="+changedInfo+" activeAt="+activeInfo+
-    " cancelable="+!!e.cancelable+" prevented="+!!e.defaultPrevented+" visibility="+document.visibilityState+" focus="+(document.hasFocus?document.hasFocus():"?");
-   updateTouchDebug(e,label+(changed?" id="+changed.identifier:"")+detail,ended||"-");
-  }
+  const touchRoles=new Map();
   function assignTouch(t,eventTarget){
-   const id=t.identifier,target=touchTarget(t),origin=eventTarget||null;
+   const id=t.identifier,target=document.elementFromPoint(t.clientX,t.clientY)||t.target,origin=eventTarget||null;
    if(touchRoles.has(id))return false;
    if(target.closest&&target.closest("#buyMenu"))return false;
    const fr=fire.getBoundingClientRect();
@@ -3490,7 +3432,7 @@ requestAnimationFrame(loop);
    // иначе Android может принять второй/третий палец за pinch и отменить группу.
    // Обычные кнопки меню сюда не попадают: handled=false.
    if(handled&&e.cancelable)e.preventDefault();
-   touchLog(e,"touchstart");
+
   }
   function touchMove(e){
    let handled=false;
@@ -3510,7 +3452,7 @@ requestAnimationFrame(loop);
    }
    // Не перехватываем движения пальцев, начавшихся на обычных кнопках/меню.
    if(handled&&e.cancelable)e.preventDefault();
-   touchLog(e,"touchmove");
+
   }
   function endTouch(t){
    const id=t.identifier,role=touchRoles.get(id);
@@ -3530,7 +3472,7 @@ requestAnimationFrame(loop);
     const value=endTouch(e.changedTouches[i]);if(value)ended.push(value);
    }
    // Завершение касаний не требует preventDefault().
-   touchLog(e,"touchend",ended.join(" ")||"-");
+
   }
   function touchCancel(e){
    const ended=[];
@@ -3538,13 +3480,14 @@ requestAnimationFrame(loop);
     const value=endTouch(e.changedTouches[i]);if(value)ended.push(value);
    }
    // Завершение касаний не требует preventDefault().
-   touchLog(e,"touchcancel",ended.join(" ")||"-");
+
   }
   document.addEventListener("touchstart",touchStart,{capture:true,passive:false});
   document.addEventListener("touchmove",touchMove,{capture:true,passive:false});
   document.addEventListener("touchend",touchEnd,{capture:true,passive:false});
   document.addEventListener("touchcancel",touchCancel,{capture:true,passive:false});
-  setEnabled(false);
+  const isApkVersion = new URLSearchParams(location.search).get("app") === "1" || /GhostGunApp/i.test(navigator.userAgent);
+  setEnabled(isApkVersion);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
 })();
