@@ -2132,6 +2132,11 @@ function renderBuyItems(){
      return '<button type="button" class="buy-item'+(selected?' selected':'')+'" data-weapon="'+i+'"><b>'+w.name+(selected?' · ВЫБРАНО':'')+'</b><small>Урон '+w.dmg+' · магазин '+w.mag+' · темп '+w.rate.toFixed(2)+' с</small></button>';
    }).join("")+'</div></section>';
  }).join("");
+ list.onclick=e=>{
+   const b=e.target.closest("[data-weapon]"); if(!b)return;
+   e.preventDefault(); e.stopPropagation();
+   chooseBuyWeapon(Number(b.dataset.weapon));
+ };
 }
 function toggleBuyMenu(){
  if(!isPlaying()||!player||(!buyPhase&&player.dead<=0)||matchOver||state!=="play") return;
@@ -2155,11 +2160,6 @@ function chooseBuyWeapon(i){
  player.reloading=0;
  buildWeaponBar(); renderWeaponBar(); renderBuyItems();
 }
-document.getElementById("buyItems").addEventListener("click",e=>{
- const b=e.target.closest("[data-weapon]"); if(!b)return;
- e.preventDefault(); e.stopPropagation();
- chooseBuyWeapon(Number(b.dataset.weapon));
-});
 function closeBuyMenu(){const el=document.getElementById("buyMenu");if(el)el.classList.remove("open");buyOpen=false;buyPhase=false;}
 window.__ghostBuyToggle=toggleBuyMenu; window.__ghostBuyClose=closeBuyMenu;
 
