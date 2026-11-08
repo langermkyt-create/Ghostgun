@@ -3486,9 +3486,10 @@ requestAnimationFrame(loop);
    for(let i=0;i<e.changedTouches.length;i++){
     if(assignTouch(e.changedTouches[i],e.target))handled=true;
    }
-   // Отменяем браузерный жест только для распознанного игрового касания.
-   // Кнопки магазина и другие обычные элементы должны получать click.
-   if(handled&&e.touches.length===1&&e.cancelable)e.preventDefault();
+   // Блокируем жесты браузера при начале каждого игрового касания:
+   // иначе Android может принять второй/третий палец за pinch и отменить группу.
+   // Обычные кнопки меню сюда не попадают: handled=false.
+   if(handled&&e.cancelable)e.preventDefault();
    touchLog(e,"touchstart");
   }
   function touchMove(e){
