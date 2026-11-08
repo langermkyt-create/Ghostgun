@@ -429,7 +429,7 @@ body.phone-mode.phone-playing #phoneFire{display:block!important;position:fixed!
 body.phone-mode .phone-actions{right:14px;bottom:18px;grid-template-columns:54px;z-index:10002}
 body.phone-mode .phone-actions #phoneFire{display:block}
 @media(max-width:600px){body.phone-mode #menu .ghost-frame{max-height:94dvh;overflow:auto}body.phone-mode .phone-stick{width:100px;height:100px;left:15px;bottom:16px}.phone-actions{right:12px;bottom:15px;grid-template-columns:48px 62px;gap:7px}.phone-action{height:46px}.phone-action.fire{width:62px;height:62px}}
-#buyMenu{display:none;position:fixed;z-index:10001;inset:10% 8%;overflow:auto;padding:18px;background:rgba(12,14,25,.97);border:1px solid #8e86c8;border-radius:16px;box-shadow:0 20px 80px #000b;color:#f4f2ff}#buyMenu.open{display:block}#buyMenu h2{margin:0 0 12px;font-size:20px}#buyItems{display:grid;grid-template-columns:1fr;gap:14px}.buy-class{padding:10px;border:1px solid #403957;border-radius:12px;background:#171426}.buy-class h3{margin:0;color:#d9caff;font-size:14px;letter-spacing:.12em}.buy-class p{margin:4px 0 9px;color:#9d95b8;font-size:10px}.buy-class-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.buy-item{min-width:0;padding:10px;border:1px solid #45425f;border-radius:10px;background:#1c1b30;color:#eee;text-align:left}.buy-item.selected{border-color:#9b83ff;background:#30264a;box-shadow:inset 0 0 0 1px #9b83ff55}.buy-item small{display:block;color:#b5b1d0;margin-top:5px;font-size:10px}#phoneBuy{position:absolute;right:16px;top:64px;width:54px;height:54px;border-radius:50%;border:1px solid #c5b6ff;background:radial-gradient(circle at 30% 25%,#6e5ad4,#171126);color:white;font-weight:800;pointer-events:auto;touch-action:none;display:none}body.phone-mode.phone-playing #phoneBuy{display:block}@media(max-width:600px){#buyMenu{inset:5% 4%;padding:12px}}
+#buyMenu{display:none;position:fixed;z-index:10001;inset:10% 8%;overflow:auto;padding:18px;background:rgba(12,14,25,.97);border:1px solid #8e86c8;border-radius:16px;box-shadow:0 20px 80px #000b;color:#f4f2ff}#buyMenu.open{display:block}#buyMenu h2{margin:0 0 12px;font-size:20px}#buyItems{display:grid;grid-template-columns:1fr;gap:14px}.buy-class{padding:10px;border:1px solid #403957;border-radius:12px;background:#171426}.buy-class h3{margin:0;color:#d9caff;font-size:14px;letter-spacing:.12em}.buy-class p{margin:4px 0 9px;color:#9d95b8;font-size:10px}.buy-class-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.buy-item{min-width:0;padding:10px;border:1px solid #45425f;border-radius:10px;background:#1c1b30;color:#eee;text-align:left}.buy-item.selected{border-color:#9b83ff;background:#30264a;box-shadow:inset 0 0 0 1px #9b83ff55}.buy-item small{display:block;color:#b5b1d0;margin-top:5px;font-size:10px}#phoneBuy{position:absolute;left:8px;right:auto;top:130px;width:104px;height:38px;border-radius:10px;border:1px solid #c5b6ff;background:linear-gradient(145deg,#6e5ad4,#171126);color:white;font-weight:800;font-size:10px;letter-spacing:.08em;pointer-events:auto;touch-action:none;display:none;box-shadow:0 0 18px #8e78ff44}body.phone-mode.phone-playing #phoneBuy{display:block}@media(max-width:600px){#buyMenu{inset:5% 4%;padding:12px}}
 </style>
 </head>
 <body>
@@ -3352,13 +3352,13 @@ requestAnimationFrame(loop);
     if(document.body.classList.contains("phone-mode")&&playing()&&window.__ghostBuyToggle)window.__ghostBuyToggle();
   });
   const closeBuy=document.getElementById("closeBuy");if(closeBuy)closeBuy.addEventListener("click",()=>window.__ghostBuyClose&&window.__ghostBuyClose());
-  let enabled=false, stickId=null, lookId=null, lx=0, ly=0;
+  let enabled=false, stickId=null, lookPointers=new Map(), lx=0, ly=0;
   const api=window.__ghostPhoneAPI;
   const playing=()=>!!(api&&api.isPlaying());
   const setKey=(k,v)=>{if(api)api.setKey(k,v);};
   const releaseKeys=()=>["KeyW","KeyA","KeyS","KeyD"].forEach(k=>setKey(k,false));
   function clearMove(){const old=stickId;stickId=null;releaseKeys();knob.style.transform="translate(0px,0px)";try{if(old!==null&&stick.hasPointerCapture(old))stick.releasePointerCapture(old);}catch(_){}}
-  function clearLook(){const old=lookId;lookId=null;try{if(old!==null&&controls.hasPointerCapture(old))controls.releasePointerCapture(old);}catch(_){}}
+  function clearLook(id){if(id!==undefined)lookPointers.delete(id);else lookPointers.clear();}
   function stopAll(){clearMove();clearLook();if(api)api.setMouseDown(false);fire.classList.remove("active");}
   window.addEventListener("blur",stopAll);
   document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll();});
@@ -3388,6 +3388,8 @@ requestAnimationFrame(loop);
   fire.addEventListener("pointerdown",e=>{
    if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
    e.preventDefault();e.stopPropagation();api.setMouseDown(true);fire.classList.add("active");
+   // Палец на кнопке огня тоже может вести камеру; остальные пальцы обзора работают независимо.
+   lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
    try{fire.setPointerCapture(e.pointerId);}catch(_){}
   });
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>fire.addEventListener(type,()=>{if(api)api.setMouseDown(false);fire.classList.remove("active");}));
@@ -3396,18 +3398,21 @@ requestAnimationFrame(loop);
   // Обзор обрабатывается на window: палец может выйти за границы canvas/stage.
   // Не начинаем обзор на кнопках или джойстике — так можно одновременно двигаться и смотреть.
   window.addEventListener("pointerdown",e=>{
-   if(!enabled||!playing()||!api||!api.canAct()||lookId!==null)return;
+   if(!enabled||!playing()||!api||!api.canAct())return;
    if(controls.contains(e.target)||e.clientX<innerWidth*.42)return;
-   lookId=e.pointerId;lx=e.clientX;ly=e.clientY;
+   if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   try{if(e.target&&e.target.setPointerCapture)e.target.setPointerCapture(e.pointerId);}catch(_){}
   },{passive:true});
   window.addEventListener("pointermove",e=>{
-   if(!enabled||lookId!==e.pointerId||!playing()||!api)return; e.preventDefault();
-   const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;
+   const prev=lookPointers.get(e.pointerId);
+   if(!enabled||!prev||!playing()||!api)return; e.preventDefault();
+   const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
+   lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
    if(dx||dy)api.look(dx,dy);
   },{passive:false});
-  window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookId=null;stickId=null;};
+  window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookPointers.clear();stickId=null;};
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
-   if(e.pointerId===stickId)clearMove();if(e.pointerId===lookId)clearLook();
+   if(e.pointerId===stickId)clearMove();if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
   }));
   setEnabled(false);
  }
@@ -3419,7 +3424,7 @@ requestAnimationFrame(loop);
 
 <div id="buyMenu" aria-label="Магазин оружия"><h2>АРСЕНАЛ <button id="closeBuy" style="float:right">ЗАКРЫТЬ ×</button></h2><div id="buyItems"></div></div>
 <div id="phoneControls" aria-label="Сенсорное управление">
- <div class="phone-tip">ПРОВЕДИ ПАЛЬЦЕМ ПО ПРАВОЙ ЧАСТИ ЭКРАНА — ОБЗОР</div><div id="phoneSlots"><button type="button" data-slot="0">1</button><button type="button" data-slot="1">2</button><button type="button" data-slot="2">3</button></div><button id="phoneBuy" aria-label="Магазин оружия">B</button>
+ <div class="phone-tip">ПРОВЕДИ ПАЛЬЦЕМ ПО ПРАВОЙ ЧАСТИ ЭКРАНА — ОБЗОР</div><div id="phoneSlots"><button type="button" data-slot="0">1</button><button type="button" data-slot="1">2</button><button type="button" data-slot="2">3</button></div><button id="phoneBuy" aria-label="Закупка">ЗАКУПКА</button>
  <div class="phone-stick" id="phoneStick"><div class="phone-knob" id="phoneKnob"></div></div>
  <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button><button class="phone-action" id="phoneDash">РЫВОК</button></div>
 </div>
