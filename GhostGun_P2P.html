@@ -3369,21 +3369,23 @@ requestAnimationFrame(loop);
   let enabled=false, stickId=null, lookPointers=new Map(), firePointers=new Set();
   const api=window.__ghostPhoneAPI;
   const playing=()=>!!(api&&api.isPlaying());
-  // Одноразовые игровые действия запускаются на pointerdown:
-  // Android WebView может не отправлять синтетический click после touch.
-  // Не используем общий touchstart-обработчик игры для этих кнопок.
+  // На Android запускаем действие непосредственно из touchstart.
+  // Pointer Events оставляем для мыши/стилуса, чтобы не зависеть от
+  // преобразования touch -> pointer/click внутри конкретного WebView.
   const runPhoneAction=(e,action)=>{
-   e.preventDefault();e.stopPropagation();
-   if(!enabled||!playing()||!api)return;
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   if(!document.body.classList.contains("phone-mode")||!playing()||!api)return;
    action();
   };
-  reload.addEventListener("pointerdown",e=>runPhoneAction(e,()=>api.reload()));
-  dash.addEventListener("pointerdown",e=>runPhoneAction(e,()=>api.dash()));
-  // Резерв для старых WebView без Pointer Events.
-  if(!("PointerEvent" in window)){
-   reload.addEventListener("touchstart",e=>runPhoneAction(e,()=>api.reload()),{passive:false});
-   dash.addEventListener("touchstart",e=>runPhoneAction(e,()=>api.dash()),{passive:false});
-  }
+  reload.addEventListener("touchstart",e=>runPhoneAction(e,()=>api.reload()),{passive:false});
+  dash.addEventListener("touchstart",e=>runPhoneAction(e,()=>api.dash()),{passive:false});
+  reload.addEventListener("pointerdown",e=>{
+   if(e.pointerType!=="touch")runPhoneAction(e,()=>api.reload());
+  });
+  dash.addEventListener("pointerdown",e=>{
+   if(e.pointerType!=="touch")runPhoneAction(e,()=>api.dash());
+  });
   const setKey=(k,v)=>{if(api)api.setKey(k,v);};
   const releaseKeys=()=>["KeyW","KeyA","KeyS","KeyD"].forEach(k=>setKey(k,false));
   function clearMove(){stickId=null;releaseKeys();knob.style.transform="translate(0px,0px)";}
