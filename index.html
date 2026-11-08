@@ -3379,13 +3379,15 @@ requestAnimationFrame(loop);
    setKey("KeyA",dx < -max*.2);setKey("KeyD",dx > max*.2);
   }
   stick.addEventListener("pointerdown",e=>{
+   if(e.pointerType==="touch")return;
    if(!enabled||!playing()||stickId!==null)return;
    e.preventDefault();e.stopPropagation();stickId=e.pointerId;
    move(e);
   });
-  stick.addEventListener("pointermove",e=>{if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
+  stick.addEventListener("pointermove",e=>{if(e.pointerType==="touch")return;if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
   
   fire.addEventListener("pointerdown",e=>{
+   if(e.pointerType==="touch")return;
    if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
    e.preventDefault();e.stopPropagation();firePointers.add(e.pointerId);api.setMouseDown(true);fire.classList.add("active");
    // Палец на кнопке огня тоже может вести камеру; остальные пальцы обзора работают независимо.
@@ -3401,11 +3403,13 @@ requestAnimationFrame(loop);
   // поэтому обычный window-обработчик не видел палец, нажавший огонь.
   // Capture позволяет независимо отслеживать каждый палец, включая палец на огне.
   window.addEventListener("pointerdown",e=>{
+   if(e.pointerType==="touch")return;
    if(!enabled||!playing()||!api||!api.canAct())return;
    if(controls.contains(e.target)||e.clientX<innerWidth*.42)return;
    if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   },{passive:true,capture:true});
   window.addEventListener("pointermove",e=>{
+    if(e.pointerType==="touch")return;
     if(!enabled||!playing()||!api)return;
     // Один общий маршрутизатор событий: джойстик и обзор не перехватывают указатели друг у друга.
     if(e.pointerId===stickId){e.preventDefault();move(e);return;}
@@ -3417,6 +3421,7 @@ requestAnimationFrame(loop);
    },{passive:false,capture:true});
   window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookPointers.clear();stickId=null;};
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
+    if(e.pointerType==="touch")return;
     if(e.pointerId===stickId)clearMove();
     if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
     if(firePointers.delete(e.pointerId)){if(api)api.setMouseDown(firePointers.size>0);if(!firePointers.size)fire.classList.remove("active");}
