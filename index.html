@@ -3486,8 +3486,9 @@ requestAnimationFrame(loop);
    for(let i=0;i<e.changedTouches.length;i++){
     if(assignTouch(e.changedTouches[i],e.target))handled=true;
    }
-   // В Android не отменяем touchstart вручную: preventDefault на новом
-   // пальце может отменить всю активную группу касаний. Жесты блокирует touch-action:none.
+   // Блокируем жест браузера только при первом пальце. Повторный preventDefault
+   // на втором/третьем touchstart в Android может отменить всю группу касаний.
+   if(e.touches.length===1&&e.cancelable)e.preventDefault();
    touchLog(e,"touchstart");
   }
   function touchMove(e){
@@ -3506,8 +3507,9 @@ requestAnimationFrame(loop);
      }
     }
    }
-   // Не вызываем preventDefault и на touchmove: сохраняем нативную группу касаний.
-   // touch-action:none на игровом слое запрещает прокрутку и системные жесты браузера.
+   // Первый touchstart уже заблокировал жест браузера; дополнительно блокируем
+   // прокрутку на движении, если WebView всё ещё считает событие отменяемым.
+   if(e.cancelable)e.preventDefault();
    touchLog(e,"touchmove");
   }
   function endTouch(t){
