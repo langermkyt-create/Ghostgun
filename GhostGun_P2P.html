@@ -3402,26 +3402,31 @@ requestAnimationFrame(loop);
    const point=t=>({clientX:t.clientX,clientY:t.clientY});
    function touchStart(e){
     if(!enabled||!playing()||!api)return;
-    const target=e.target;
-    if(target.closest&&target.closest("#buyMenu"))return;
-    const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
-    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
-    const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
-    const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy");
-    let handled=onFire||onStick||onSlots||onUtility;
+    let blockBrowserGesture=false;
     for(const touch of e.changedTouches){
      const id=touch.identifier;
+     // Назначаем роль каждому пальцу отдельно по фактической точке касания.
+     const target=document.elementFromPoint(touch.clientX,touch.clientY)||e.target;
+     if(target.closest&&target.closest("#buyMenu"))continue;
+     const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
+     const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
+     const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
+     const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy");
      if(onFire){
       firePointers.add(id);touchRoles.set(id,"fire");
       lookPointers.set(id,{x:touch.clientX,y:touch.clientY});
       api.setPhoneFireDown(true);fire.classList.add("active");
+      blockBrowserGesture=true;
      }else if(onStick){
-      if(stickId===null){stickId=id;touchRoles.set(id,"stick");move(point(t));}
+      if(stickId===null){stickId=id;touchRoles.set(id,"stick");move(point(touch));}
+      blockBrowserGesture=true;
      }else if(!onSlots&&!onUtility&&touch.clientX>=innerWidth*.42){
-      touchRoles.set(id,"look");lookPointers.set(id,{x:touch.clientX,y:touch.clientY});handled=true;
+      touchRoles.set(id,"look");lookPointers.set(id,{x:touch.clientX,y:touch.clientY});
+      blockBrowserGesture=true;
      }
+     // Кнопкам слотов/перезарядки/рывка/закупки оставляем стандартный click.
     }
-    if(handled)e.preventDefault();
+    if(blockBrowserGesture)e.preventDefault();
    }
    function touchMove(e){
     if(!enabled||!playing()||!api)return;
