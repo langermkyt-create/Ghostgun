@@ -425,11 +425,11 @@ body.phone-mode .wslot{width:48px;height:48px;flex-basis:48px;font-size:8px}
 body.phone-mode .wslot .ammo{font-size:9px}
 #phoneSlots{position:absolute;left:8px;top:76px;display:flex;gap:6px;pointer-events:auto}
 #phoneSlots button{width:42px;height:42px;border-radius:12px;border:1px solid #bca9ff;background:linear-gradient(145deg,#59458f,#171126);color:#fff;font-weight:900;font-size:16px;touch-action:none}
-body.phone-mode #phoneFire{position:fixed!important;right:max(14px,env(safe-area-inset-right));top:max(14px,env(safe-area-inset-top));left:auto!important;bottom:auto!important;width:88px;height:88px;min-width:88px;min-height:88px;border-radius:50%;z-index:10003;box-shadow:0 0 0 12px #ff55701c,0 0 28px #ff557066;font-size:11px}
+body.phone-mode.phone-playing #phoneFire{display:block!important;position:fixed!important;right:calc(14px + env(safe-area-inset-right))!important;top:calc(14px + env(safe-area-inset-top))!important;left:auto!important;bottom:auto!important;margin:0!important;width:88px;height:88px;min-width:88px;min-height:88px;border-radius:50%;z-index:10010!important;box-shadow:0 0 0 12px #ff55701c,0 0 28px #ff557066;font-size:11px;transform:none!important}body:not(.phone-mode.phone-playing) #phoneFire{display:none!important}
 body.phone-mode .phone-actions{right:14px;bottom:18px;grid-template-columns:54px;z-index:10002}
 body.phone-mode .phone-actions #phoneFire{display:block}
 @media(max-width:600px){body.phone-mode #menu .ghost-frame{max-height:94dvh;overflow:auto}body.phone-mode .phone-stick{width:100px;height:100px;left:15px;bottom:16px}.phone-actions{right:12px;bottom:15px;grid-template-columns:48px 62px;gap:7px}.phone-action{height:46px}.phone-action.fire{width:62px;height:62px}}
-#buyMenu{display:none;position:fixed;z-index:10001;inset:10% 8%;overflow:auto;padding:18px;background:rgba(12,14,25,.97);border:1px solid #8e86c8;border-radius:16px;box-shadow:0 20px 80px #000b;color:#f4f2ff}#buyMenu.open{display:block}#buyMenu h2{margin:0 0 12px;font-size:20px}#buyItems{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.buy-item{padding:10px;border:1px solid #45425f;border-radius:10px;background:#1c1b30;color:#eee;text-align:left}.buy-item small{display:block;color:#b5b1d0;margin-top:5px}#phoneBuy{position:absolute;right:16px;top:64px;width:54px;height:54px;border-radius:50%;border:1px solid #c5b6ff;background:radial-gradient(circle at 30% 25%,#6e5ad4,#171126);color:white;font-weight:800;pointer-events:auto;touch-action:none;display:none}body.phone-mode.phone-playing #phoneBuy{display:block}@media(max-width:600px){#buyMenu{inset:5% 4%;padding:12px}}
+#buyMenu{display:none;position:fixed;z-index:10001;inset:10% 8%;overflow:auto;padding:18px;background:rgba(12,14,25,.97);border:1px solid #8e86c8;border-radius:16px;box-shadow:0 20px 80px #000b;color:#f4f2ff}#buyMenu.open{display:block}#buyMenu h2{margin:0 0 12px;font-size:20px}#buyItems{display:grid;grid-template-columns:1fr;gap:14px}.buy-class{padding:10px;border:1px solid #403957;border-radius:12px;background:#171426}.buy-class h3{margin:0;color:#d9caff;font-size:14px;letter-spacing:.12em}.buy-class p{margin:4px 0 9px;color:#9d95b8;font-size:10px}.buy-class-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.buy-item{min-width:0;padding:10px;border:1px solid #45425f;border-radius:10px;background:#1c1b30;color:#eee;text-align:left}.buy-item.selected{border-color:#9b83ff;background:#30264a;box-shadow:inset 0 0 0 1px #9b83ff55}.buy-item small{display:block;color:#b5b1d0;margin-top:5px;font-size:10px}#phoneBuy{position:absolute;right:16px;top:64px;width:54px;height:54px;border-radius:50%;border:1px solid #c5b6ff;background:radial-gradient(circle at 30% 25%,#6e5ad4,#171126);color:white;font-weight:800;pointer-events:auto;touch-action:none;display:none}body.phone-mode.phone-playing #phoneBuy{display:block}@media(max-width:600px){#buyMenu{inset:5% 4%;padding:12px}}
 </style>
 </head>
 <body>
@@ -786,22 +786,23 @@ const torches=[];
 
 /* ================= WEAPONS ================= */
 const WEAPONS=[
- {id:"revolver",name:"РЕВОЛЬВЕР «ОТПЕВАНИЕ»",short:"ОТПЕВ.",dmg:24,mag:6,reserve:60,rate:.36,spread:.006,pellets:1,reload:1.15,
-  col:[210,200,255],glow:[190,150,255],kick:.055,trail:1},
- {id:"smg",name:"СКОРОСТРЕЛ «ХОР»",short:"ХОР",dmg:9.5,mag:32,reserve:160,rate:.078,spread:.032,pellets:1,reload:1.45,
-  col:[255,225,170],glow:[255,180,90],kick:.022,trail:.7},
- {id:"shotgun",name:"ДРОБОВИК «ПАНИХИДА»",short:"ПАНИХ.",dmg:12,mag:5,reserve:35,rate:.82,spread:.075,pellets:7,reload:1.9,
-  col:[255,175,150],glow:[255,120,80],kick:.13,trail:.8},
- {id:"crossbow",name:"АРБАЛЕТ «УЛЬТИМА»",short:"УЛЬТИМА",dmg:52,mag:3,reserve:18,rate:1.05,spread:.004,pellets:1,reload:2.1,
-  col:[140,235,255],glow:[80,200,255],kick:.1,trail:1.4,proj:true,splash:30,splashR:3.4},
- {id:"pistol",name:"ПИСТОЛЕТ «ИСКРА»",short:"ИСКРА",dmg:18,mag:15,reserve:90,rate:.19,spread:.012,pellets:1,reload:1.0,col:[180,235,255],glow:[110,220,255],kick:.035,trail:.8},
- {id:"rifle",name:"ВИНТОВКА «ДОЗОР»",short:"ДОЗОР",dmg:19,mag:30,reserve:150,rate:.11,spread:.014,pellets:1,reload:1.55,col:[150,220,255],glow:[100,190,255],kick:.045,trail:1},
- {id:"burst",name:"ИМПУЛЬС «ТРИАДА»",short:"ТРИАДА",dmg:14,mag:27,reserve:135,rate:.14,spread:.02,pellets:1,reload:1.5,col:[180,255,220],glow:[90,255,190],kick:.04,trail:.9},
- {id:"sniper",name:"СНАЙПЕРСКАЯ «ЗЕНИТ»",short:"ЗЕНИТ",dmg:78,mag:5,reserve:35,rate:1.15,spread:.001,pellets:1,reload:2.0,col:[220,230,255],glow:[190,220,255],kick:.16,trail:1.5},
- {id:"lmg",name:"ПУЛЕМЁТ «ГРОМ»",short:"ГРОМ",dmg:12,mag:60,reserve:240,rate:.095,spread:.035,pellets:1,reload:2.5,col:[255,205,130],glow:[255,160,70],kick:.055,trail:.8},
- {id:"dual",name:"ДУАЛЬНЫЕ «ЭХО»",short:"ЭХО",dmg:13,mag:24,reserve:144,rate:.12,spread:.03,pellets:1,reload:1.45,col:[255,170,210],glow:[255,100,190],kick:.03,trail:.8},
- {id:"slug",name:"ТАКТИЧЕСКИЙ «БАСТИОН»",short:"БАСТИОН",dmg:38,mag:8,reserve:48,rate:.55,spread:.012,pellets:1,reload:1.8,col:[255,190,155],glow:[255,130,90],kick:.11,trail:1},
- {id:"plasma",name:"ПЛАЗМА «НЕОН»",short:"НЕОН",dmg:25,mag:20,reserve:100,rate:.24,spread:.008,pellets:1,reload:1.65,col:[180,140,255],glow:[150,90,255],kick:.06,trail:1.2}
+ {id:"revolver",name:"РЕВОЛЬВЕР «ОТПЕВАНИЕ»",short:"ОТПЕВ.",dmg:24,mag:6,reserve:60,rate:.36,spread:.006,pellets:1,reload:1.15,classKey:"pistol",col:[210,200,255],glow:[190,150,255],kick:.055,trail:1},
+ {id:"smg",name:"СКОРОСТРЕЛ «ХОР»",short:"ХОР",dmg:9.5,mag:32,reserve:160,rate:.078,spread:.032,pellets:1,reload:1.45,classKey:"smg",col:[255,225,170],glow:[255,180,90],kick:.022,trail:.7},
+ {id:"shotgun",name:"ДРОБОВИК «ПАНИХИДА»",short:"ПАНИХ.",dmg:12,mag:5,reserve:35,rate:.82,spread:.075,pellets:7,reload:1.9,classKey:"shotgun",col:[255,175,150],glow:[255,120,80],kick:.13,trail:.8},
+ {id:"crossbow",name:"ДРОБОВИК «УЛЬТИМА»",short:"УЛЬТИМА",dmg:8,mag:8,reserve:64,rate:.72,spread:.11,pellets:5,reload:1.8,classKey:"shotgun",col:[140,235,255],glow:[80,200,255],kick:.1,trail:1.1},
+ {id:"pistol",name:"ПИСТОЛЕТ «ИСКРА»",short:"ИСКРА",dmg:18,mag:15,reserve:90,rate:.19,spread:.012,pellets:1,reload:1.0,classKey:"pistol",col:[180,235,255],glow:[110,220,255],kick:.035,trail:.8},
+ {id:"rifle",name:"АВТОМАТ «ДОЗОР»",short:"ДОЗОР",dmg:19,mag:30,reserve:150,rate:.11,spread:.014,pellets:1,reload:1.55,classKey:"smg",col:[150,220,255],glow:[100,190,255],kick:.045,trail:1},
+ {id:"burst",name:"АВТОМАТ «ТРИАДА»",short:"ТРИАДА",dmg:14,mag:27,reserve:135,rate:.14,spread:.02,pellets:1,reload:1.5,classKey:"smg",col:[180,255,220],glow:[90,255,190],kick:.04,trail:.9},
+ {id:"sniper",name:"ДРОБОВИК «ЗЕНИТ»",short:"ЗЕНИТ",dmg:7,mag:12,reserve:72,rate:.95,spread:.045,pellets:8,reload:2.0,classKey:"shotgun",col:[220,230,255],glow:[190,220,255],kick:.16,trail:1.5},
+ {id:"lmg",name:"ПУЛЕМЁТ «ГРОМ»",short:"ГРОМ",dmg:12,mag:60,reserve:240,rate:.095,spread:.035,pellets:1,reload:2.5,classKey:"smg",col:[255,205,130],glow:[255,160,70],kick:.055,trail:.8},
+ {id:"dual",name:"ДУАЛЬНЫЕ «ЭХО»",short:"ЭХО",dmg:13,mag:24,reserve:144,rate:.12,spread:.03,pellets:1,reload:1.45,classKey:"pistol",col:[255,170,210],glow:[255,100,190],kick:.03,trail:.8},
+ {id:"slug",name:"ДРОБОВИК «БАСТИОН»",short:"БАСТИОН",dmg:38,mag:8,reserve:48,rate:.55,spread:.012,pellets:1,reload:1.8,classKey:"shotgun",col:[255,190,155],glow:[255,130,90],kick:.11,trail:1},
+ {id:"plasma",name:"ПИСТОЛЕТ «НЕОН»",short:"НЕОН",dmg:25,mag:20,reserve:100,rate:.24,spread:.008,pellets:1,reload:1.65,classKey:"pistol",col:[180,140,255],glow:[150,90,255],kick:.06,trail:1.2}
+];
+const WEAPON_CLASSES=[
+ {key:"pistol",name:"ПИСТОЛЕТЫ",slot:0,description:"Точные одиночные выстрелы",ids:[0,4,9,11]},
+ {key:"smg",name:"ПУЛЕМЁТЫ",slot:1,description:"Автоматический огонь и высокая скорострельность",ids:[1,5,6,8]},
+ {key:"shotgun",name:"ДРОБОВИКИ",slot:2,description:"Широкий разброс и несколько дробин за выстрел",ids:[2,3,7,10]}
 ];
 const PILOT={revolver:"Отпевание",smg:"Хор",shotgun:"Панихида",crossbow:"Ультима"};
 
@@ -1037,11 +1038,11 @@ function fireWeapon(a){
   for(let p=0;p<w.pellets;p++){
     const spread=(Math.random()-0.5)*w.spread*2;
     const pa=ang+spread;
-    const hit=findAimTarget(a,pa,w.id==="shotgun"?16:40);
+    const hit=findAimTarget(a,pa,w.classKey==="shotgun"?20:40);
     let end;
     if(hit){
       const head=Math.random()<0.16;
-      const falloff = w.id==="shotgun"? clamp(1-(hit.d/16)*0.55,0.35,1) : 1;
+      const falloff = w.classKey==="shotgun"? clamp(1-(hit.d/20)*0.55,0.35,1) : 1;
       damage(hit.t, w.dmg*(head?2.15:1)*falloff, a, head);
       end={x:hit.t.x,z:hit.t.z};
     } else {
@@ -1052,7 +1053,7 @@ function fireWeapon(a){
     targets.push({x1:muzzleX,z1:muzzleZ,x2:end.x,z2:end.z});
   }
   for(const t of targets) addFX({type:"tracer",x1:t.x1,z1:t.z1,x2:t.x2,z2:t.z2,life:w.trail>1?.16:.11,max:w.trail>1?.16:.11,col:w.glow});
-  addFX({type:"flash",x:muzzleX,y:1.15,z:muzzleZ,life:.1,col:w.glow,sz:w.id==="shotgun"?2.6:1.5});
+  addFX({type:"flash",x:muzzleX,y:1.15,z:muzzleZ,life:.1,col:w.glow,sz:w.classKey==="shotgun"?2.6:1.5});
   if(a.isPlayer && a.magLeft[a.wep]===0) startReload(a);
 }
 function startReload(a){
@@ -2122,21 +2123,43 @@ function updateHUD(){
   document.querySelectorAll(".wslot").forEach(el=>el.classList.toggle("on",playerLoadout[Number(el.dataset.slot)]===player.wep));
 }
 function renderWeaponBar(){ if(!player) return; updateHUD(); }
+function renderBuyItems(){
+ const list=document.getElementById("buyItems"); if(!list)return;
+ list.innerHTML=WEAPON_CLASSES.map(cls=>{
+   const current=playerLoadout[cls.slot];
+   return '<section class="buy-class"><h3>'+cls.name+'</h3><p>'+cls.description+' · СЛОТ '+(cls.slot+1)+'</p><div class="buy-class-grid">'+cls.ids.map(i=>{
+     const w=WEAPONS[i], selected=current===i;
+     return '<button type="button" class="buy-item'+(selected?' selected':'')+'" data-weapon="'+i+'"><b>'+w.name+(selected?' · ВЫБРАНО':'')+'</b><small>Урон '+w.dmg+' · магазин '+w.mag+' · темп '+w.rate.toFixed(2)+' с</small></button>';
+   }).join("")+'</div></section>';
+ }).join("");
+}
 function toggleBuyMenu(){
  if(!isPlaying()||!player||(!buyPhase&&player.dead<=0)||matchOver||state!=="play") return;
- const el=document.getElementById("buyMenu"); if(!el)return;
+ const el=document.getElementById("buyMenu");if(!el)return;
  if(el.classList.contains("open")){closeBuyMenu();return;}
- // На ПК освобождаем курсор, чтобы можно было выбирать оружие мышью в магазине.
  if(!document.body.classList.contains("phone-mode")){
    try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
    mouseDown=false;
  }
- const list=document.getElementById("buyItems");
- const full=playerLoadout.length>=3;
- list.innerHTML=WEAPONS.map((w,i)=>{const owned=playerLoadout.includes(i);return '<button class="buy-item" data-weapon="'+i+'" '+(owned?'disabled':'')+'><b>'+w.name+(owned?' · УЖЕ ЕСТЬ':'')+'</b><small>Урон '+w.dmg+' · магазин '+w.mag+' · '+(owned?'в вашем наборе':(full?'заменить текущее оружие':'добавить в слот '+(playerLoadout.length+1)+' из 3'))+'</small></button>';}).join("");
- list.querySelectorAll("[data-weapon]").forEach(b=>b.addEventListener("click",()=>{const i=Number(b.dataset.weapon);if(!player||player.dead<=0||!isPlaying()||matchOver||playerLoadout.includes(i))return;if(playerLoadout.length<3){playerLoadout.push(i);}else{const at=Math.max(0,playerLoadout.indexOf(player.wep));playerLoadout[at]=i;}player.wep=i;player.magLeft[i]=Math.max(player.magLeft[i],WEAPONS[i].mag);player.reserve[i]=Math.max(player.reserve[i],WEAPONS[i].reserve);buildWeaponBar();renderWeaponBar();closeBuyMenu();}));
+ renderBuyItems();
  el.classList.add("open"); buyOpen=true;
 }
+function chooseBuyWeapon(i){
+ if(!player||!isPlaying()||matchOver||state!=="play"||(!buyPhase&&player.dead<=0))return;
+ const w=WEAPONS[i]; if(!w)return;
+ const cls=WEAPON_CLASSES.find(c=>c.key===w.classKey); if(!cls)return;
+ playerLoadout[cls.slot]=i;
+ player.wep=i;
+ player.magLeft[i]=Math.max(player.magLeft[i]||0,w.mag);
+ player.reserve[i]=Math.max(player.reserve[i]||0,w.reserve);
+ player.reloading=0;
+ buildWeaponBar(); renderWeaponBar(); renderBuyItems();
+}
+document.getElementById("buyItems").addEventListener("click",e=>{
+ const b=e.target.closest("[data-weapon]"); if(!b)return;
+ e.preventDefault(); e.stopPropagation();
+ chooseBuyWeapon(Number(b.dataset.weapon));
+});
 function closeBuyMenu(){const el=document.getElementById("buyMenu");if(el)el.classList.remove("open");buyOpen=false;buyPhase=false;}
 window.__ghostBuyToggle=toggleBuyMenu; window.__ghostBuyClose=closeBuyMenu;
 
@@ -3315,6 +3338,7 @@ requestAnimationFrame(loop);
   const stick=document.getElementById("phoneStick"), knob=document.getElementById("phoneKnob");
   const slots=document.getElementById("phoneSlots");
   const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
+   if(fire&&fire.parentElement!==document.body)document.body.appendChild(fire);
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
   if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
   // Android WebView/Chrome может терять pointerdown при наложении сенсорных слоёв.
@@ -3397,6 +3421,6 @@ requestAnimationFrame(loop);
 <div id="phoneControls" aria-label="Сенсорное управление">
  <div class="phone-tip">ПРОВЕДИ ПАЛЬЦЕМ ПО ПРАВОЙ ЧАСТИ ЭКРАНА — ОБЗОР</div><div id="phoneSlots"><button type="button" data-slot="0">1</button><button type="button" data-slot="1">2</button><button type="button" data-slot="2">3</button></div><button id="phoneBuy" aria-label="Магазин оружия">B</button>
  <div class="phone-stick" id="phoneStick"><div class="phone-knob" id="phoneKnob"></div></div>
- <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button><button class="phone-action fire" id="phoneFire">ОГОНЬ</button><button class="phone-action" id="phoneDash">РЫВОК</button></div>
+ <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button><button class="phone-action" id="phoneDash">РЫВОК</button></div>
 </div>
 </body></html>
