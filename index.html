@@ -3342,6 +3342,8 @@ requestAnimationFrame(loop);
    if(fire&&fire.parentElement!==document.body)document.body.appendChild(fire);
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
   if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
+  if(window.__ghostPhoneControlsInitialized)return;
+  window.__ghostPhoneControlsInitialized=true;
   // Android WebView/Chrome может терять pointerdown при наложении сенсорных слоёв.
   // Для одноразовых действий используем click, который генерируется после полноценного касания.
   if(slots)slots.querySelectorAll("[data-slot]").forEach(btn=>btn.addEventListener("click",e=>{
@@ -3422,122 +3424,73 @@ requestAnimationFrame(loop);
     "\nroles: "+(roles||"-")+"\nended: "+(endedRoles||"-")+"\nstickId="+stickId+" fire="+firePointers.size+
     "\ntarget: "+touchDebugLastTarget+"\nсобытий в истории: "+touchDebugHistory.length;
   }
-  const useTouchEvents=("ontouchstart" in window)||(navigator.maxTouchPoints>0);
-  if(!useTouchEvents){
-   stick.addEventListener("pointerdown",e=>{
-    if(!enabled||!playing()||stickId!==null)return;
-    e.preventDefault();e.stopPropagation();stickId=e.pointerId;move(e);
-   });
-   stick.addEventListener("pointermove",e=>{if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
-   fire.addEventListener("pointerdown",e=>{
-    if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
-    e.preventDefault();e.stopPropagation();firePointers.add(e.pointerId);api.setPhoneFireDown(true);fire.classList.add("active");
-    lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-   });
+  // Единая схема Pointer Events для Android, iOS и компьютеров.
+  // Каждый палец получает собственную роль и pointer capture, поэтому перемещение
+  // за пределы исходной кнопки не должно терять управление.
+  const pointerRoles=new Map();touchDebugRoles=pointerRoles;
+  function pointerTarget(e){
+   const el=document.elementFromPoint(e.clientX,e.clientY)||e.target;
+   touchDebugLastTarget=el?(el.id?"#"+el.id:el.tagName.toLowerCase()):"none";
+   return el;
   }
-  
-  reload.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.reload();});
-  dash.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.dash();});
-  // На Android используем Touch Events: они надёжнее сохраняют три независимых касания
-  // в WebView/Chrome. На устройствах без touch API остаётся Pointer Events.
-  if(useTouchEvents){
-   const touchRoles=new Map();touchDebugRoles=touchRoles;
-   const point=t=>({clientX:t.clientX,clientY:t.clientY});
-   function touchStart(e){
-    const first=e.changedTouches&&e.changedTouches[0];
-    if(first){const t=document.elementFromPoint(first.clientX,first.clientY);touchDebugLastTarget=t?(t.id?"#"+t.id:t.tagName.toLowerCase()):"none";}
-    if(!enabled||!playing()||!api){updateTouchDebug(e,"start (controls inactive)");return;}
-    let blockBrowserGesture=false;
-    for(const touch of e.changedTouches){
-     const id=touch.identifier;
-     // Назначаем роль каждому пальцу отдельно по фактической точке касания.
-     const target=document.elementFromPoint(touch.clientX,touch.clientY)||e.target;
-     if(target.closest&&target.closest("#buyMenu"))continue;
-     const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
-     const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
-     const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
-     const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy");
-     if(onFire){
-      firePointers.add(id);touchRoles.set(id,"fire");
-      lookPointers.set(id,{x:touch.clientX,y:touch.clientY});
-      api.setPhoneFireDown(true);fire.classList.add("active");
-      blockBrowserGesture=true;
-     }else if(onStick){
-      if(stickId===null){stickId=id;touchRoles.set(id,"stick");move(point(touch));}
-      blockBrowserGesture=true;
-     }else if(!onSlots&&!onUtility&&touch.clientX>=innerWidth*.42){
-      touchRoles.set(id,"look");lookPointers.set(id,{x:touch.clientX,y:touch.clientY});
-      blockBrowserGesture=true;
-     }
-     // Кнопкам слотов/перезарядки/рывка/закупки оставляем стандартный click.
-    }
-    if(blockBrowserGesture)e.preventDefault();
-    updateTouchDebug(e,"touchstart");
-   }
-   function touchMove(e){
-    if(!enabled||!playing()||!api)return;
-    let handled=false;
-    for(const touch of e.changedTouches){
-     const id=touch.identifier,role=touchRoles.get(id);
-     if(role==="stick"&&stickId===id){move(point(touch));handled=true;}
-     else if(role==="look"||role==="fire"){
-      const prev=lookPointers.get(id);if(!prev)continue;
-      const dx=touch.clientX-prev.x,dy=touch.clientY-prev.y;
-      lookPointers.set(id,{x:touch.clientX,y:touch.clientY});
-      if(dx||dy)api.look(dx,dy);
-      handled=true;
-     }
-    }
-    if(handled)e.preventDefault();
-    updateTouchDebug(e,"touchmove");
-   }
-   function touchEnd(e){
-    const endedRoles=Array.from(e.changedTouches).map(t=>t.identifier+":"+(touchRoles.get(t.identifier)||"unknown")).join(" ");
-    for(const touch of e.changedTouches){
-     const id=touch.identifier,role=touchRoles.get(id);
-     if(role==="stick"&&stickId===id)clearMove();
-     if(role==="look"||role==="fire")clearLook(id);
-     if(role==="fire"){
-      firePointers.delete(id);
-      api.setPhoneFireDown(firePointers.size>0);
-      if(!firePointers.size)fire.classList.remove("active");
-     }
-     touchRoles.delete(id);
-    }
-    // Не записываем отпускание пальца на кнопке копирования в историю игрового ввода.
-    const debugButtonTouch=Array.from(e.changedTouches).some(t=>{
-     const el=document.elementFromPoint(t.clientX,t.clientY);
-     return !!(el&&(el.closest?el.closest("#phoneTouchDebugCopy"):el.id==="phoneTouchDebugCopy"));
-    });
-    if(!debugButtonTouch)updateTouchDebug(e,e.type==="touchcancel"?"touchcancel":"touchend",endedRoles);
-   }
-   window.addEventListener("touchstart",touchStart,{capture:true,passive:false});
-   window.addEventListener("touchmove",touchMove,{capture:true,passive:false});
-   window.addEventListener("touchend",touchEnd,{capture:true,passive:false});
-   window.addEventListener("touchcancel",touchEnd,{capture:true,passive:false});
-  }else{
-   window.addEventListener("pointerdown",e=>{
-    if(!enabled||!playing()||!api||!api.canAct())return;
-    const target=e.target;
-    if(e.clientX<innerWidth*.42)return;
-    if(stick.contains(target)||(slots&&slots.contains(target)))return;
-    if(target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#buyMenu"))return;
-    if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-   },{passive:true,capture:true});
-   window.addEventListener("pointermove",e=>{
-    if(!enabled||!playing()||!api)return;
-    if(e.pointerId===stickId){e.preventDefault();move(e);return;}
-    const prev=lookPointers.get(e.pointerId);if(!prev)return;e.preventDefault();
-    const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
-    lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(dx||dy)api.look(dx,dy);
-   },{passive:false,capture:true});
-   ["pointerup","pointercancel"].forEach(type=>window.addEventListener(type,e=>{
-    if(e.pointerId===stickId)clearMove();
-    if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
-    if(firePointers.delete(e.pointerId)){api.setPhoneFireDown(firePointers.size>0);if(!firePointers.size)fire.classList.remove("active");}
-   },{capture:true}));
+  function pointerDebug(e,label,ended){
+   updateTouchDebug({touches:{length:pointerRoles.size},changedTouches:{length:1}},label,ended||"-");
   }
+  function pointerDown(e){
+   if(!enabled||!playing()||!api||!api.canAct())return;
+   const id=e.pointerId,target=pointerTarget(e);
+   if(pointerRoles.has(id))return;
+   if(target.closest&&target.closest("#buyMenu"))return;
+   const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
+   const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
+   const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
+   const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#phoneTouchDebugCopy");
+   let role=null;
+   if(onFire){
+    role="fire";firePointers.add(id);lookPointers.set(id,{x:e.clientX,y:e.clientY});
+    api.setPhoneFireDown(true);fire.classList.add("active");
+   }else if(onStick){
+    if(stickId===null){role="stick";stickId=id;move(e);}
+   }else if(!onSlots&&!onUtility&&e.clientX>=innerWidth*.42){
+    role="look";lookPointers.set(id,{x:e.clientX,y:e.clientY});
+   }
+   if(!role)return;
+   pointerRoles.set(id,role);
+   try{if(e.target&&e.target.setPointerCapture)e.target.setPointerCapture(id);}catch(_){}
+   e.preventDefault();
+   pointerDebug(e,"pointerdown");
+  }
+  function pointerMove(e){
+   const role=pointerRoles.get(e.pointerId);
+   if(!enabled||!playing()||!api||!role)return;
+   if(role==="stick"&&stickId===e.pointerId)move(e);
+   else if(role==="look"||role==="fire"){
+    const prev=lookPointers.get(e.pointerId);
+    if(prev){
+     const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
+     lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+     if(dx||dy)api.look(dx,dy);
+    }
+   }
+   e.preventDefault();
+   pointerTarget(e);pointerDebug(e,"pointermove");
+  }
+  function pointerEnd(e){
+   const id=e.pointerId,role=pointerRoles.get(id);
+   if(!role)return;
+   if(role==="stick"&&stickId===id)clearMove();
+   if(role==="look"||role==="fire")clearLook(id);
+   if(role==="fire"){
+    firePointers.delete(id);api.setPhoneFireDown(firePointers.size>0);
+    if(!firePointers.size)fire.classList.remove("active");
+   }
+   pointerRoles.delete(id);
+   pointerTarget(e);pointerDebug(e,e.type==="pointercancel"?"pointercancel":"pointerup",id+":"+role);
+  }
+  document.addEventListener("pointerdown",pointerDown,{capture:true,passive:false});
+  document.addEventListener("pointermove",pointerMove,{capture:true,passive:false});
+  document.addEventListener("pointerup",pointerEnd,{capture:true,passive:false});
+  document.addEventListener("pointercancel",pointerEnd,{capture:true,passive:false});
   setEnabled(false);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
