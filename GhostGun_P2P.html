@@ -3427,6 +3427,9 @@ requestAnimationFrame(loop);
   function touchStart(e){
    if(!enabled||!playing())return;
    const target=e.target;
+   // Не перехватываем касания интерфейса магазина: иначе preventDefault
+   // отменяет синтетический click на кнопках «ЗАКРЫТЬ» и выбора оружия.
+   if(target.closest&&target.closest("#buyMenu"))return;
    const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
    const rightSide=[...e.changedTouches].some(t=>t.clientX>=innerWidth*.42);
