@@ -3338,7 +3338,7 @@ requestAnimationFrame(loop);
   const toggle=document.getElementById("phoneModeToggle"), controls=document.getElementById("phoneControls");
   const stick=document.getElementById("phoneStick"), knob=document.getElementById("phoneKnob");
   const slots=document.getElementById("phoneSlots");
-  const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
+  const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), phoneBuy=document.getElementById("phoneBuy");
    if(fire&&controls&&fire.parentElement!==controls)controls.appendChild(fire);
   function placePhoneFire(){
    if(!fire)return;
@@ -3352,7 +3352,7 @@ requestAnimationFrame(loop);
   window.addEventListener("resize",placePhoneFire,{passive:true});
   window.addEventListener("orientationchange",()=>setTimeout(placePhoneFire,100),{passive:true});
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
-  if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
+  if(!toggle||!controls||!stick||!knob||!fire||!reload) return;
   if(window.__ghostPhoneControlsInitialized)return;
   window.__ghostPhoneControlsInitialized=true;
   // Android WebView/Chrome может терять pointerdown при наложении сенсорных слоёв.
@@ -3379,12 +3379,8 @@ requestAnimationFrame(loop);
    action();
   };
   reload.addEventListener("touchstart",e=>runPhoneAction(e,()=>api.reload()),{passive:false});
-  dash.addEventListener("touchstart",e=>runPhoneAction(e,()=>api.dash()),{passive:false});
   reload.addEventListener("pointerdown",e=>{
    if(e.pointerType!=="touch")runPhoneAction(e,()=>api.reload());
-  });
-  dash.addEventListener("pointerdown",e=>{
-   if(e.pointerType!=="touch")runPhoneAction(e,()=>api.dash());
   });
   const setKey=(k,v)=>{if(api)api.setKey(k,v);};
   const releaseKeys=()=>["KeyW","KeyA","KeyS","KeyD"].forEach(k=>setKey(k,false));
@@ -3425,7 +3421,7 @@ requestAnimationFrame(loop);
    const onFire=fireHit||target===fire||(target.closest&&target.closest("#phoneFire"))||(origin===fire||(origin&&origin.closest&&origin.closest("#phoneFire")));
    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
    const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
-   const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy");
+   const onUtility=target.closest&&target.closest("#phoneReload,#phoneBuy");
    let role=null;
    if(onFire){
     role="fire";firePointers.add(id);lookPointers.set(id,{x:t.clientX,y:t.clientY});
@@ -3503,7 +3499,7 @@ requestAnimationFrame(loop);
   document.addEventListener("touchmove",touchMove,{capture:true,passive:false});
   document.addEventListener("touchend",touchEnd,{capture:true,passive:false});
   document.addEventListener("touchcancel",touchCancel,{capture:true,passive:false});
-  const isApkVersion = new URLSearchParams(location.search).get("app") === "1" || /GhostGunApp/i.test(navigator.userAgent);
+  const isApkVersion = new URLSearchParams(location.search).get("app") === "1" || /GhostGunApp/i.test(navigator.userAgent) || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   setEnabled(isApkVersion);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
@@ -3516,7 +3512,7 @@ requestAnimationFrame(loop);
 <div id="phoneControls" aria-label="Сенсорное управление">
  <div class="phone-tip">ПРОВЕДИ ПАЛЬЦЕМ ПО ПРАВОЙ ЧАСТИ ЭКРАНА — ОБЗОР</div><div id="phoneSlots"><button type="button" data-slot="0">1</button><button type="button" data-slot="1">2</button><button type="button" data-slot="2">3</button></div><button id="phoneBuy" aria-label="Закупка">ЗАКУПКА</button>
  <div class="phone-stick" id="phoneStick"><div class="phone-knob" id="phoneKnob"></div></div>
- <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button><button class="phone-action" id="phoneDash">РЫВОК</button></div>
+ <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button></div>
 </div>
 <button class="phone-action fire" id="phoneFire" type="button">ОГОНЬ</button>
 </body></html>
