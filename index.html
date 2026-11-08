@@ -1124,7 +1124,8 @@ function startMatch(m,opts){
   buildWeaponBar();
   updateTeamHud();
   if(cvs.requestPointerLock&&!document.body.classList.contains("phone-mode")){ try{ cvs.requestPointerLock(); }catch(e){} }
-  if(window.__ghostResetPhoneControls)window.__ghostResetPhoneControls();\n  setTimeout(()=>{if(state==="play"&&buyPhase)toggleBuyMenu();},180);
+  if(window.__ghostResetPhoneControls)window.__ghostResetPhoneControls();
+  setTimeout(()=>{if(state==="play"&&buyPhase)toggleBuyMenu();},180);
   document.getElementById("modeBadge").textContent=cfg.name+" · "+cfg.goal+(opts.peers&&opts.peers.length?" · СЕТЬ":"");
   popKill("МАТЧ НАЧАТ",cfg.name);
   logAction("СТАРТ МАТЧА",actorLabel(player),"режим "+cfg.name+" · цель "+cfg.goal+" · ботов "+bots.length+" · сеть "+((opts.peers&&opts.peers.length)?opts.peers.length+" игр.":"нет"));
@@ -3267,7 +3268,8 @@ window.__ghostPhoneAPI = {
   canAct: () => state === "play",
   reload: () => { if (state === "play") startReload(player); },
   dash: () => { if (state === "play") dashPlayer(); },
-  look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },\n  switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },
+  look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },
+  switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },
   resetPhone: () => { mouseDown=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
 };
 requestAnimationFrame(loop);
