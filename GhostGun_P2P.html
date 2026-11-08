@@ -3352,14 +3352,14 @@ requestAnimationFrame(loop);
     if(document.body.classList.contains("phone-mode")&&playing()&&window.__ghostBuyToggle)window.__ghostBuyToggle();
   });
   const closeBuy=document.getElementById("closeBuy");if(closeBuy)closeBuy.addEventListener("click",()=>window.__ghostBuyClose&&window.__ghostBuyClose());
-  let enabled=false, stickId=null, lookPointers=new Map(), lx=0, ly=0;
+  let enabled=false, stickId=null, lookPointers=new Map(), firePointers=new Set();
   const api=window.__ghostPhoneAPI;
   const playing=()=>!!(api&&api.isPlaying());
   const setKey=(k,v)=>{if(api)api.setKey(k,v);};
   const releaseKeys=()=>["KeyW","KeyA","KeyS","KeyD"].forEach(k=>setKey(k,false));
-  function clearMove(){const old=stickId;stickId=null;releaseKeys();knob.style.transform="translate(0px,0px)";try{if(old!==null&&stick.hasPointerCapture(old))stick.releasePointerCapture(old);}catch(_){}}
+  function clearMove(){stickId=null;releaseKeys();knob.style.transform="translate(0px,0px)";}
   function clearLook(id){if(id!==undefined)lookPointers.delete(id);else lookPointers.clear();}
-  function stopAll(){clearMove();clearLook();if(api)api.setMouseDown(false);fire.classList.remove("active");}
+  function stopAll(){clearMove();clearLook();firePointers.clear();if(api)api.setMouseDown(false);fire.classList.remove("active");}
   window.addEventListener("blur",stopAll);
   document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll();});
   function setEnabled(value){
@@ -3381,18 +3381,18 @@ requestAnimationFrame(loop);
   stick.addEventListener("pointerdown",e=>{
    if(!enabled||!playing()||stickId!==null)return;
    e.preventDefault();e.stopPropagation();stickId=e.pointerId;
-   try{stick.setPointerCapture(e.pointerId);}catch(_){}move(e);
+   move(e);
   });
   stick.addEventListener("pointermove",e=>{if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
-  ["pointerup","pointercancel","lostpointercapture"].forEach(type=>stick.addEventListener(type,e=>{if(e.pointerId===stickId)clearMove();}));
+  
   fire.addEventListener("pointerdown",e=>{
    if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
-   e.preventDefault();e.stopPropagation();api.setMouseDown(true);fire.classList.add("active");
+   e.preventDefault();e.stopPropagation();firePointers.add(e.pointerId);api.setMouseDown(true);fire.classList.add("active");
    // Палец на кнопке огня тоже может вести камеру; остальные пальцы обзора работают независимо.
    lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-   try{fire.setPointerCapture(e.pointerId);}catch(_){}
+   
   });
-  ["pointerup","pointercancel","lostpointercapture"].forEach(type=>fire.addEventListener(type,()=>{if(api)api.setMouseDown(false);fire.classList.remove("active");}));
+  
   reload.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.reload();});
   dash.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.dash();});
   // Обзор обрабатывается на window: палец может выйти за границы canvas/stage.
@@ -3406,16 +3406,21 @@ requestAnimationFrame(loop);
    if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   },{passive:true,capture:true});
   window.addEventListener("pointermove",e=>{
-   const prev=lookPointers.get(e.pointerId);
-   if(!enabled||!prev||!playing()||!api)return; e.preventDefault();
-   const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
-   lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-   if(dx||dy)api.look(dx,dy);
-  },{passive:false,capture:true});
+    if(!enabled||!playing()||!api)return;
+    // Один общий маршрутизатор событий: джойстик и обзор не перехватывают указатели друг у друга.
+    if(e.pointerId===stickId){e.preventDefault();move(e);return;}
+    const prev=lookPointers.get(e.pointerId);
+    if(!prev)return; e.preventDefault();
+    const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
+    lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(dx||dy)api.look(dx,dy);
+   },{passive:false,capture:true});
   window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookPointers.clear();stickId=null;};
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
-   if(e.pointerId===stickId)clearMove();if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
-  }));
+    if(e.pointerId===stickId)clearMove();
+    if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
+    if(firePointers.delete(e.pointerId)){if(api)api.setMouseDown(firePointers.size>0);if(!firePointers.size)fire.classList.remove("active");}
+   },{capture:true}));
   setEnabled(false);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
