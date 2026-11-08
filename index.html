@@ -3382,20 +3382,43 @@ requestAnimationFrame(loop);
   // Временная диагностика multi-touch: не перехватывает касания и не мешает управлению.
   const touchDebug=document.createElement("div");
   touchDebug.id="phoneTouchDebug";
-  touchDebug.style.cssText="position:fixed;left:8px;top:126px;z-index:20000;max-width:calc(100vw - 16px);padding:7px 9px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.82);color:#d9fff2;font:10px/1.45 monospace;white-space:pre-wrap;pointer-events:none;display:none";
+  touchDebug.style.cssText="position:fixed;left:8px;top:126px;z-index:20000;max-width:calc(100vw - 16px);padding:7px 9px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.92);color:#d9fff2;font:10px/1.45 monospace;white-space:pre-wrap;pointer-events:none;display:none";
+  const touchDebugCopy=document.createElement("button");
+  touchDebugCopy.id="phoneTouchDebugCopy";touchDebugCopy.type="button";
+  touchDebugCopy.textContent="СКОПИРОВАТЬ ДИАГНОСТИКУ";
+  touchDebugCopy.style.cssText="position:fixed;left:8px;top:232px;z-index:20001;padding:8px 11px;border:1px solid #72e6c0;border-radius:7px;background:#142b29;color:#d9fff2;font:bold 10px monospace;pointer-events:auto;display:none";
+  document.body.appendChild(touchDebugCopy);
+  let touchDebugSnapshot="Диагностика ещё не запускалась.";
+  function copyTouchDebugFallback(value){
+   const area=document.createElement("textarea");area.value=value;area.style.cssText="position:fixed;left:-9999px;top:0";
+   document.body.appendChild(area);area.select();
+   try{document.execCommand("copy");touchDebugCopy.textContent="СКОПИРОВАНО";}catch(_){touchDebugCopy.textContent="НЕ УДАЛОСЬ СКОПИРОВАТЬ";}
+   area.remove();
+  }
+  touchDebugCopy.addEventListener("click",()=>{
+   const value=touchDebugSnapshot;
+   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(value).then(()=>{touchDebugCopy.textContent="СКОПИРОВАНО";}).catch(()=>copyTouchDebugFallback(value));
+   else copyTouchDebugFallback(value);
+  });
   document.body.appendChild(touchDebug);
   // Показываем индикатор сразу при включении телефонного режима, а не только после касания.
   touchDebug.style.display=document.body.classList.contains("phone-mode")?"block":"none";
-  touchDebug.textContent="TOUCH DEBUG · готов к проверке\nactive=0 changed=0\nroles: -\nstickId="+stickId+" fire=0\ntarget: -";
+  touchDebugCopy.style.display=document.body.classList.contains("phone-mode")?"block":"none";
+  touchDebug.textContent="TOUCH DEBUG · готов к проверке\\nactive=0 changed=0\\nroles: -\\nstickId="+stickId+" fire=0\\ntarget: -";
   let touchDebugLastTarget="-",touchDebugRoles=null;
-  function updateTouchDebug(e,label){
+  function updateTouchDebug(e,label,endedRoles){
    if(!document.body.classList.contains("phone-mode"))return;
    const roles=touchDebugRoles?Array.from(touchDebugRoles.entries()).map(([id,role])=>id+":"+role).join(" "):"-";
-   touchDebug.style.display="block";
+   touchDebug.style.display="block";touchDebugCopy.style.display="block";
+   touchDebugSnapshot="Событие: "+label+
+    "\\nactive="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
+    "\\nактивные роли: "+(roles||"-")+"\\nроли завершившихся касаний: "+(endedRoles||"-")+
+    "\\nstickId="+stickId+" fire="+firePointers.size+"\\ntarget: "+touchDebugLastTarget+
+    "\\nвремя: "+new Date().toLocaleTimeString();
    touchDebug.textContent="TOUCH DEBUG · "+label+
-    "\nactive="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
-    "\nroles: "+(roles||"-")+"\nstickId="+stickId+" fire="+firePointers.size+
-    "\ntarget: "+touchDebugLastTarget;
+    "\\nactive="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
+    "\\nroles: "+(roles||"-")+"\\nended: "+(endedRoles||"-")+"\\nstickId="+stickId+" fire="+firePointers.size+
+    "\\ntarget: "+touchDebugLastTarget;
   }
   const useTouchEvents=("ontouchstart" in window)||(navigator.maxTouchPoints>0);
   if(!useTouchEvents){
@@ -3467,6 +3490,7 @@ requestAnimationFrame(loop);
     updateTouchDebug(e,"touchmove");
    }
    function touchEnd(e){
+    const endedRoles=Array.from(e.changedTouches).map(t=>t.identifier+":"+(touchRoles.get(t.identifier)||"unknown")).join(" ");
     for(const touch of e.changedTouches){
      const id=touch.identifier,role=touchRoles.get(id);
      if(role==="stick"&&stickId===id)clearMove();
@@ -3478,7 +3502,7 @@ requestAnimationFrame(loop);
      }
      touchRoles.delete(id);
     }
-    updateTouchDebug(e,e.type==="touchcancel"?"touchcancel":"touchend");
+    updateTouchDebug(e,e.type==="touchcancel"?"touchcancel":"touchend",endedRoles);
    }
    window.addEventListener("touchstart",touchStart,{capture:true,passive:false});
    window.addEventListener("touchmove",touchMove,{capture:true,passive:false});
