@@ -70,3 +70,5 @@ jobs:
           path: android/app/build/outputs/apk/debug/GhostGun-Installer.apk
           if-no-files-found: error
           retention-days: 14
+
+# Manual artifact recovery: a new commit can be used to trigger a fresh APK build.
