@@ -3453,7 +3453,9 @@ requestAnimationFrame(loop);
    for(const t of e.changedTouches){
     const role=touchRoles.get(t.identifier);
     if(role==="stick"){move(point(t));handled=true;}
-    else if(role==="look"){
+    else if(role==="look"||role==="fire"){
+     // Палец огня одновременно удерживает стрельбу и может вращать камеру.
+     // Каждый touch-id хранит собственную позицию, не затрагивая джойстик/другие пальцы.
      const prev=lookPointers.get(t.identifier);if(!prev)continue;
      const dx=t.clientX-prev.x,dy=t.clientY-prev.y;
      lookPointers.set(t.identifier,{x:t.clientX,y:t.clientY});
@@ -3469,6 +3471,7 @@ requestAnimationFrame(loop);
     if(role==="stick"&&stickId===id)clearMove();
     if(role==="look")clearLook(id);
     if(role==="fire"){
+     clearLook(id);
      firePointers.delete(id);
      if(api)api.setMouseDown(firePointers.size>0);
      if(!firePointers.size)fire.classList.remove("active");
