@@ -1216,7 +1216,6 @@ window.addEventListener("keydown",e=>{
   if(e.code>="Digit1"&&e.code<="Digit3"){ const slot=parseInt(e.code.slice(5))-1; const wi=playerLoadout[slot]; if(wi!==undefined){switchWeapon(player,wi);renderWeaponBar();} }
   if(e.code==="KeyB"){toggleBuyMenu();}
   if(e.code==="KeyR") startReload(player);
-  if(e.code==="Space") dashPlayer();
   if(e.code==="KeyQ"||e.code==="KeyE"){ cycleWeapon(e.code==="KeyQ"?-1:1); }
 });
 window.addEventListener("keyup",e=>{ keys[e.code]=false; });
@@ -1233,13 +1232,6 @@ cvs.addEventListener("pointerdown",e=>{ if(state==="play"){ dragging=true; if(!d
 window.addEventListener("pointerup",()=>{ dragging=false; });
 cvs.addEventListener("contextmenu",e=>e.preventDefault());
 
-let dashT=0, dashCd=0;
-function dashPlayer(){
-  if(dashCd>0||!isPlaying()||player.dead>0) return;
-  dashT=.22; dashCd=1.5; shake(.05);
-  logAction("РЫВОК",actorLabel(player),"позиция "+player.x.toFixed(1)+","+player.z.toFixed(1));
-  addFX({type:"ring",x:player.x,y:.2,z:player.z,life:.4,max:.4,col:[160,220,255],sz:2.2});
-}
 function cycleWeapon(d){
   if(!playerLoadout.length)return; const at=Math.max(0,playerLoadout.indexOf(player.wep));
   const wi=playerLoadout[(at+d+playerLoadout.length)%playerLoadout.length];
@@ -1254,8 +1246,7 @@ function updatePlayer(dt){
     if(player.dead<=0) respawn(player, true);
     return;
   }
-  dashT=Math.max(0,dashT-dt); dashCd=Math.max(0,dashCd-dt);
-  const spd = 4.5*(dashT>0?2.25:1);
+  const spd = 4.5;
   let fx=0,fz=0;
   if(keys.KeyW||keys.ArrowUp) fx+=1;
   if(keys.KeyS||keys.ArrowDown) fx-=1;
