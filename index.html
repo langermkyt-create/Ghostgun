@@ -3486,8 +3486,8 @@ requestAnimationFrame(loop);
    for(let i=0;i<e.changedTouches.length;i++){
     if(assignTouch(e.changedTouches[i],e.target))handled=true;
    }
-   // Не даём браузеру захватить экранный жест после начала игрового касания.
-   if(handled&&e.cancelable)e.preventDefault();
+   // В Android не отменяем touchstart вручную: preventDefault на новом
+   // пальце может отменить всю активную группу касаний. Жесты блокирует touch-action:none.
    touchLog(e,"touchstart");
   }
   function touchMove(e){
@@ -3506,8 +3506,8 @@ requestAnimationFrame(loop);
      }
     }
    }
-   // На Android touch-action может не остановить нативный скролл во время multi-touch.
-   if(handled&&e.cancelable)e.preventDefault();
+   // Не вызываем preventDefault и на touchmove: сохраняем нативную группу касаний.
+   // touch-action:none на игровом слое запрещает прокрутку и системные жесты браузера.
    touchLog(e,"touchmove");
   }
   function endTouch(t){
