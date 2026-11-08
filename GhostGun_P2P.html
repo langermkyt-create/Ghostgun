@@ -3237,6 +3237,37 @@ function safeStart(m,opts){
   }
 }
 window.addEventListener("error",e=>{ try{ console.error("[JS ERROR]",e.message||"ошибка скрипта",e.filename||"",e.lineno||""); }catch(err){} });
+
+window.__ghostSafeStart=(m)=>safeStart(m||mode);
+function delegatedMenuAction(e){
+  const b=e.target&&e.target.closest?e.target.closest("button,[role=button]"):null;
+  if(!b)return;
+  const id=b.id;
+  const view={goLocal:"localView",goNetwork:"networkView",goSettings:"settingsView"};
+  if(view[id]){
+    e.preventDefault();e.stopPropagation();
+    document.querySelectorAll("#menu .menu-view").forEach(v=>v.classList.add("hidden"));
+    const target=document.getElementById(view[id]);if(target)target.classList.remove("hidden");
+    const frame=document.querySelector("#menu .ghost-frame");if(frame)frame.scrollTop=0;
+    return;
+  }
+  if(b.hasAttribute("data-back")){
+    e.preventDefault();e.stopPropagation();
+    document.querySelectorAll("#menu .menu-view").forEach(v=>v.classList.add("hidden"));
+    const home=document.getElementById("homeView");if(home)home.classList.remove("hidden");
+    return;
+  }
+  if(id==="playBtn"||id==="againBtn"){
+    e.preventDefault();e.stopPropagation();try{SFX.init();}catch(_){}
+    safeStart(mode);return;
+  }
+  if(id==="exitGame"){
+    e.preventDefault();e.stopPropagation();const note=document.getElementById("exitNote");if(note)note.classList.remove("hidden");
+  }
+}
+document.addEventListener("pointerup",delegatedMenuAction,true);
+document.addEventListener("touchend",delegatedMenuAction,{capture:true,passive:false});
+
 /* клик по кнопкам запуска ловим на уровне документа: сработает даже если
    прямая привязка потерялась, а повторный запуск отсекается блокировкой */
 document.addEventListener("click",e=>{
