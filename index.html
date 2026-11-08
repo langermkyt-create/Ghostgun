@@ -3441,6 +3441,19 @@ requestAnimationFrame(loop);
    const meta=e&&typeof e.pointerId==="number"?" id="+e.pointerId+" type="+e.pointerType+" primary="+e.isPrimary:"";
    updateTouchDebug({touches:{length:pointerRoles.size},changedTouches:{length:1}},label+meta,ended||"-");
   }
+  // Пассивная диагностика исходных Touch Events: ничего не отменяет
+  // и не перехватывает управление, только показывает реальное число касаний браузера.
+  function rawTouchDebug(e){
+   const changed=e.changedTouches&&e.changedTouches[0];
+   const el=changed?document.elementFromPoint(changed.clientX,changed.clientY):e.target;
+   const target=el?(el.id?"#"+el.id:el.tagName.toLowerCase()):"none";
+   touchDebugLastTarget=target+" | touches="+(e.touches?e.touches.length:"?")+
+    " changed="+(e.changedTouches?e.changedTouches.length:"?");
+   updateTouchDebug(e,"raw-"+e.type);
+  }
+  document.addEventListener("touchstart",rawTouchDebug,{capture:true,passive:true});
+  document.addEventListener("touchend",rawTouchDebug,{capture:true,passive:true});
+  document.addEventListener("touchcancel",rawTouchDebug,{capture:true,passive:true});
   function pointerDown(e){
    const id=e.pointerId,target=pointerTarget(e);
    const fr=fire.getBoundingClientRect();
