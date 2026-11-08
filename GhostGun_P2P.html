@@ -1207,7 +1207,7 @@ function endMatch(winner,by,fromNetwork){
 
 /* ================= INPUT ================= */
 const keys={};
-let mouseDown=false, locked=false, dragging=false;
+let mouseDown=false, phoneFireHeld=false, locked=false, dragging=false;
 window.addEventListener("keydown",e=>{
   keys[e.code]=true;
   if(state==="menu"||state==="over"||state==="lobby") return;
@@ -1276,7 +1276,7 @@ function updatePlayer(dt){
   if(player.fireT>0) player.fireT-=dt;
   if(player.hurtT>0) player.hurtT-=dt;
   if(player.reloading>0){ player.reloading-=dt; if(player.reloading<=0) { player.reloading=0; finishReload(player); renderWeaponBar(); } }
-  if(mouseDown && player.dead<=0) fireWeapon(player);
+  if((mouseDown||phoneFireHeld) && player.dead<=0) fireWeapon(player);
   // passive spectral regen after 4.5s without damage
   player.noHitT=(player.noHitT||0)+dt;
   if(player.dead<=0 && player.hp<player.maxhp && player.noHitT>4.5){
@@ -3321,12 +3321,13 @@ window.__ghostPhoneAPI = {
   isPlaying: () => state === "play",
   setKey: (k, v) => { keys[k] = !!v; },
   setMouseDown: v => { mouseDown = !!v; },
+  setPhoneFireDown: v => { phoneFireHeld = !!v; },
   canAct: () => state === "play",
   reload: () => { if (state === "play") startReload(player); },
   dash: () => { if (state === "play") dashPlayer(); },
   look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },
   switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },
-  resetPhone: () => { mouseDown=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
+  resetPhone: () => { mouseDown=false;phoneFireHeld=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
 };
 requestAnimationFrame(loop);
 })();
@@ -3359,7 +3360,7 @@ requestAnimationFrame(loop);
   const releaseKeys=()=>["KeyW","KeyA","KeyS","KeyD"].forEach(k=>setKey(k,false));
   function clearMove(){stickId=null;releaseKeys();knob.style.transform="translate(0px,0px)";}
   function clearLook(id){if(id!==undefined)lookPointers.delete(id);else lookPointers.clear();}
-  function stopAll(){clearMove();clearLook();firePointers.clear();if(api)api.setMouseDown(false);fire.classList.remove("active");}
+  function stopAll(){clearMove();clearLook();firePointers.clear();if(api){api.setMouseDown(false);api.setPhoneFireDown(false);}fire.classList.remove("active");}
   window.addEventListener("blur",stopAll);
   document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll();});
   function setEnabled(value){
@@ -3444,7 +3445,7 @@ requestAnimationFrame(loop);
     if(onFire){
      firePointers.add(id);touchRoles.set(id,"fire");
      lookPointers.set(id,{x:t.clientX,y:t.clientY});
-     if(api)api.setMouseDown(true);
+     if(api)api.setPhoneFireDown(true);
      fire.classList.add("active");
     }else if(onStick){
      if(stickId===null){stickId=id;touchRoles.set(id,"stick");move(point(t));}
@@ -3479,7 +3480,7 @@ requestAnimationFrame(loop);
     if(role==="fire"){
      clearLook(id);
      firePointers.delete(id);
-     if(api)api.setMouseDown(firePointers.size>0);
+     if(api)api.setPhoneFireDown(firePointers.size>0);
      if(!firePointers.size)fire.classList.remove("active");
     }
     touchRoles.delete(id);
