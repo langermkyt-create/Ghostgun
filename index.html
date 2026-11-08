@@ -3439,7 +3439,12 @@ requestAnimationFrame(loop);
   function touchLog(e,label,ended){
    const changed=e.changedTouches&&e.changedTouches.length?e.changedTouches[0]:null;
    if(changed)touchTarget(changed);
-   updateTouchDebug(e,label+(changed?" id="+changed.identifier:""),ended||"-");
+   const rawTarget=e.target?(e.target.id?"#"+e.target.id:e.target.tagName.toLowerCase()):"none";
+   const changedInfo=e.changedTouches?Array.from(e.changedTouches).map(t=>t.identifier+"@"+Math.round(t.clientX)+","+Math.round(t.clientY)).join(" "):"-";
+   const activeInfo=e.touches?Array.from(e.touches).map(t=>t.identifier+"@"+Math.round(t.clientX)+","+Math.round(t.clientY)).join(" "):"-";
+   const detail=" | raw="+rawTarget+" changedAt="+changedInfo+" activeAt="+activeInfo+
+    " cancelable="+!!e.cancelable+" prevented="+!!e.defaultPrevented+" visibility="+document.visibilityState+" focus="+(document.hasFocus?document.hasFocus():"?");
+   updateTouchDebug(e,label+(changed?" id="+changed.identifier:"")+detail,ended||"-");
   }
   function assignTouch(t){
    const id=t.identifier,target=touchTarget(t);
