@@ -3437,11 +3437,17 @@ requestAnimationFrame(loop);
    updateTouchDebug({touches:{length:pointerRoles.size},changedTouches:{length:1}},label,ended||"-");
   }
   function pointerDown(e){
-   if(!enabled||!playing()||!api||!api.canAct())return;
    const id=e.pointerId,target=pointerTarget(e);
+   const fr=fire.getBoundingClientRect();
+   const fireHit=fr.width>0&&fr.height>0&&e.clientX>=fr.left&&e.clientX<=fr.right&&e.clientY>=fr.top&&e.clientY<=fr.bottom;
+   const canAct=!!(api&&api.canAct());
+   if(!enabled||!playing()||!api||!canAct){
+    touchDebugLastTarget+=" | blocked enabled="+enabled+" playing="+playing()+" api="+!!api+" canAct="+canAct;
+    pointerDebug(e,"pointerdown-blocked");return;
+   }
    if(pointerRoles.has(id))return;
-   if(target.closest&&target.closest("#buyMenu"))return;
-   const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
+   if(target.closest&&target.closest("#buyMenu")){pointerDebug(e,"pointerdown-buy-menu");return;}
+   const onFire=fireHit||target===fire||(target.closest&&target.closest("#phoneFire"));
    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
    const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
    const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#phoneTouchDebugCopy");
@@ -3454,11 +3460,11 @@ requestAnimationFrame(loop);
    }else if(!onSlots&&!onUtility&&e.clientX>=innerWidth*.42){
     role="look";lookPointers.set(id,{x:e.clientX,y:e.clientY});
    }
-   if(!role)return;
+   if(!role){pointerDebug(e,"pointerdown-unassigned"+(fireHit?"-fire-hit":""));return;}
    pointerRoles.set(id,role);
    try{if(e.target&&e.target.setPointerCapture)e.target.setPointerCapture(id);}catch(_){}
    e.preventDefault();
-   pointerDebug(e,"pointerdown");
+   pointerDebug(e,"pointerdown-"+role);
   }
   function pointerMove(e){
    const role=pointerRoles.get(e.pointerId);
