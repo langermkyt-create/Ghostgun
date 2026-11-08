@@ -157,12 +157,12 @@ border-radius:3px;background:rgba(16,11,28,.72);font-size:12.5px;letter-spacing:
 .feedline{font-size:11px;letter-spacing:.05em;padding:4px 9px;border-radius:3px;background:rgba(10,6,20,.6);
 border-left:2px solid rgba(150,120,255,.7);animation:feedIn .3s;color:#cfc5e8}
 @keyframes feedIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
-.weaponbar{position:absolute;right:18px;bottom:18px;left:auto;top:auto;transform:none;display:flex;align-items:center;justify-content:center;gap:9px;padding:9px;border:1px solid rgba(181,158,255,.55);border-radius:999px;background:rgba(10,6,20,.78);box-shadow:0 0 24px #241343aa;max-width:94vw;z-index:8}
+.weaponbar{position:absolute;left:14px;top:14px;right:auto;bottom:auto;transform:none;display:flex;align-items:center;justify-content:center;gap:9px;padding:9px;border:1px solid rgba(181,158,255,.55);border-radius:999px;background:rgba(10,6,20,.78);box-shadow:0 0 24px #241343aa;max-width:94vw;z-index:8}
 .wslot{width:76px;height:76px;flex:0 0 76px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(140,120,200,.4);border-radius:50%;background:rgba(28,22,48,.9);font-size:9px;letter-spacing:.04em;color:#a69ac8;transition:.16s;cursor:pointer;padding:3px}
 .wslot.on{border:2px solid #d3c2ff;color:#fff;background:radial-gradient(circle at 35% 25%,#6045a3,#171126);box-shadow:0 0 16px rgba(140,90,255,.6)}
 .wslot .ammo{display:block;font-size:11px;color:#79d6c4;margin-top:3px}
 .wslot.empty .ammo{color:#ff8f9b}
-@media(max-width:600px){.weaponbar{right:8px;bottom:8px;left:auto;top:auto;gap:5px;padding:6px}.wslot{width:64px;height:64px;flex-basis:64px;font-size:8px}.wslot .ammo{font-size:10px}}
+@media(max-width:600px){.weaponbar{left:8px;top:8px;right:auto;bottom:auto;gap:5px;padding:6px}.wslot{width:64px;height:64px;flex-basis:64px;font-size:8px}.wslot .ammo{font-size:10px}}
 .hitmark{position:absolute;left:50%;top:50%;width:40px;height:40px;transform:translate(-50%,-50%) rotate(45deg);opacity:0}
 .hitmark.on{opacity:1}
 .hitmark i{position:absolute;background:#ff8d8d;width:11px;height:2px;box-shadow:0 0 8px #ff5f5f}
@@ -420,6 +420,14 @@ h1{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:clamp(31px,5.5
 .phone-mode-label{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:10px 2px}.phone-mode-label input{accent-color:#8e7aff;width:18px;height:18px;flex:0 0 auto;margin-top:2px}.phone-mode-label b{display:block;color:#e7e6ff;font-size:12px;letter-spacing:.04em}.phone-mode-label small{display:block;color:#8e92ae;font-size:10px;line-height:1.6;margin-top:4px}.phone-mode-panel{padding:10px 13px!important}
 #phoneControls{display:none;position:fixed;inset:0;z-index:9999;pointer-events:none;touch-action:none;font-family:inherit}body.phone-mode.phone-playing #phoneControls{display:block}.phone-stick{position:absolute;left:24px;bottom:28px;width:116px;height:116px;border:1px solid #8372c9a8;border-radius:50%;background:#17152b9c;box-shadow:inset 0 0 25px #8b74ff20,0 0 24px #0007;pointer-events:auto;touch-action:none;display:grid;place-items:center}.phone-knob{width:44px;height:44px;border-radius:50%;border:1px solid #d3c8ff;background:radial-gradient(circle at 30% 25%,#c4b3ff,#6652a9 60%,#211936);box-shadow:0 0 20px #8e78ff66;pointer-events:none}.phone-actions{position:absolute;right:18px;bottom:24px;display:grid;grid-template-columns:58px 70px;gap:9px;align-items:end;pointer-events:none}.phone-action{height:54px;border-radius:50%;border:1px solid #b39cff9c;color:#f5f0ff;background:radial-gradient(circle at 30% 25%,#53447e,#171126);font-size:9px;font-weight:700;letter-spacing:.08em;pointer-events:auto;touch-action:none}.phone-action.fire{width:70px;height:70px;border-color:#ff7294;background:radial-gradient(circle at 30% 25%,#87405d,#210c1c);grid-row:span 2}.phone-action:active{filter:brightness(1.45);transform:scale(.96)}.phone-tip{position:absolute;right:15px;top:16px;color:#bcb2d6aa;font-size:9px;letter-spacing:.13em;text-align:right;max-width:45vw}
 body.phone-mode #stage{touch-action:none;overscroll-behavior:none}body.phone-mode #phoneControls,body.phone-mode #phoneControls *{touch-action:none}body.phone-mode #game{touch-action:none;overscroll-behavior:none}body.phone-mode canvas{touch-action:none; -webkit-user-select:none; user-select:none}body.phone-mode #phoneControls{ -webkit-user-select:none; user-select:none}
+body.phone-mode .weaponbar{left:8px!important;top:8px!important;right:auto!important;bottom:auto!important;z-index:10002;max-width:58vw;gap:4px;padding:5px}
+body.phone-mode .wslot{width:48px;height:48px;flex-basis:48px;font-size:8px}
+body.phone-mode .wslot .ammo{font-size:9px}
+#phoneSlots{position:absolute;left:8px;top:76px;display:flex;gap:6px;pointer-events:auto}
+#phoneSlots button{width:42px;height:42px;border-radius:12px;border:1px solid #bca9ff;background:linear-gradient(145deg,#59458f,#171126);color:#fff;font-weight:900;font-size:16px;touch-action:none}
+body.phone-mode #phoneFire{position:absolute;right:14px;top:14px;width:88px;height:88px;min-width:88px;min-height:88px;border-radius:50%;z-index:10003;box-shadow:0 0 0 12px #ff55701c,0 0 28px #ff557066;font-size:11px}
+body.phone-mode .phone-actions{right:14px;bottom:18px;grid-template-columns:54px;z-index:10002}
+body.phone-mode .phone-actions #phoneFire{display:block}
 @media(max-width:600px){body.phone-mode #menu .ghost-frame{max-height:94dvh;overflow:auto}body.phone-mode .phone-stick{width:100px;height:100px;left:15px;bottom:16px}.phone-actions{right:12px;bottom:15px;grid-template-columns:48px 62px;gap:7px}.phone-action{height:46px}.phone-action.fire{width:62px;height:62px}}
 #buyMenu{display:none;position:fixed;z-index:10001;inset:10% 8%;overflow:auto;padding:18px;background:rgba(12,14,25,.97);border:1px solid #8e86c8;border-radius:16px;box-shadow:0 20px 80px #000b;color:#f4f2ff}#buyMenu.open{display:block}#buyMenu h2{margin:0 0 12px;font-size:20px}#buyItems{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.buy-item{padding:10px;border:1px solid #45425f;border-radius:10px;background:#1c1b30;color:#eee;text-align:left}.buy-item small{display:block;color:#b5b1d0;margin-top:5px}#phoneBuy{position:absolute;right:16px;top:64px;width:54px;height:54px;border-radius:50%;border:1px solid #c5b6ff;background:radial-gradient(circle at 30% 25%,#6e5ad4,#171126);color:white;font-weight:800;pointer-events:auto;touch-action:none;display:none}body.phone-mode.phone-playing #phoneBuy{display:block}@media(max-width:600px){#buyMenu{inset:5% 4%;padding:12px}}
 </style>
@@ -729,9 +737,28 @@ const MAP_VARIANTS=[
  MAP.map((row,r)=>r===5||r===6?row.replaceAll("#",".").replaceAll(".","#").replace(/^#/,"#").replace(/#$/,"#"):row),
  MAP.map((row,r)=>r>=7&&r<=12?row.split("").map((ch,c)=>((r===8||r===11)&&(c>=3&&c<=16))?(ch==="#"?".":"#"):ch).join(""):row)
 ];
+function connectArena(){
+  const seen=Array.from({length:MH},()=>Array(MW).fill(false)), dirs=[[1,0],[-1,0],[0,1],[0,-1]], comps=[];
+  for(let r=1;r<MH-1;r++)for(let c=1;c<MW-1;c++){
+    if(MAP[r][c]==="#"||seen[r][c])continue;
+    const q=[[c,r]],comp=[];seen[r][c]=true;
+    for(let i=0;i<q.length;i++){const [x,y]=q[i];comp.push([x,y]);for(const [dx,dy] of dirs){const nx=x+dx,ny=y+dy;if(nx>0&&ny>0&&nx<MW-1&&ny<MH-1&&!seen[ny][nx]&&MAP[ny][nx]!== "#"){seen[ny][nx]=true;q.push([nx,ny]);}}}
+    comps.push(comp);
+  }
+  if(comps.length<2)return;
+  let main=comps[0];
+  for(let n=1;n<comps.length;n++){
+    let pair=null,best=1e9;for(const a of main)for(const b of comps[n]){const d=Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);if(d<best){best=d;pair=[a,b];}}
+    let [a,b]=pair,x=a[0],y=a[1];
+    while(x!==b[0]){MAP[y]=MAP[y].slice(0,x)+"."+MAP[y].slice(x+1);x+=Math.sign(b[0]-x);}
+    while(y!==b[1]){MAP[y]=MAP[y].slice(0,x)+"."+MAP[y].slice(x+1);y+=Math.sign(b[1]-y);}
+    MAP[y]=MAP[y].slice(0,x)+"."+MAP[y].slice(x+1);main=main.concat(comps[n]);
+  }
+}
 function setRandomArena(seed){
   const variant=MAP_VARIANTS[((Number(seed)||Math.floor(Math.random()*MAP_VARIANTS.length))%MAP_VARIANTS.length+MAP_VARIANTS.length)%MAP_VARIANTS.length];
   for(let r=0;r<MH;r++) MAP[r]=variant[r];
+  connectArena();
   buildArena();
 }
 function buildArena(){
@@ -783,7 +810,7 @@ const isBotTeamName=e=>e.team;
 let player=null, bots=[], effects=[], projectiles=[], state="menu", modeData=null;
 let playerLoadout=[];
 // Совместимость с обработчиками меню/магазина из старых версий.
-let buyOpen=false;
+let buyOpen=false, buyPhase=false;
 // Общая проверка состояния матча, используется игровыми и сетевыми функциями.
 function isPlaying(){ return state === "play"; }
 let mode="duel";
@@ -838,8 +865,21 @@ function blocked(x,z,r){
   return false;
 }
 function moveActor(a,dx,dz){
-  if(!blocked(a.x+dx,a.z,RAD)) a.x+=dx; else if(!blocked(a.x,a.z+dz,RAD)) { /*slide*/ }
+  if(!blocked(a.x+dx,a.z,RAD)) a.x+=dx;
   if(!blocked(a.x,a.z+dz,RAD)) a.z+=dz;
+}
+function botWaypoint(b,target){
+  const sc=Math.floor((b.x-worldMinX)/CELL),sr=Math.floor((b.z-worldMinZ)/CELL),gc=Math.floor((target.x-worldMinX)/CELL),gr=Math.floor((target.z-worldMinZ)/CELL);
+  if(sc===gc&&sr===gr)return target;
+  const key=sc+","+sr+">"+gc+","+gr;
+  if(!b.path||b.pathKey!==key||b.pathT<=0){
+    const q=[[sc,sr]],prev=new Map(),seen=new Set([sc+","+sr]),dirs=[[1,0],[-1,0],[0,1],[0,-1]];let found=null;
+    for(let i=0;i<q.length&&i<MW*MH;i++){const [x,y]=q[i],k=x+","+y;if(x===gc&&y===gr){found=k;break;}for(const [dx,dy] of dirs){const nx=x+dx,ny=y+dy,nk=nx+","+ny;if(nx<1||ny<1||nx>=MW-1||ny>=MH-1||solid(nx,ny)||seen.has(nk))continue;seen.add(nk);prev.set(nk,k);q.push([nx,ny]);}}
+    const path=[];if(found){let k=found;while(k&&k!==sc+","+sr){const [x,y]=k.split(",").map(Number);path.push({x:cellCx(x),z:cellCz(y)});k=prev.get(k);}path.reverse();}
+    b.path=path;b.pathKey=key;b.pathT=.45;
+  }else b.pathT-=1/60;
+  while(b.path&&b.path.length&&dst(b.x,b.z,b.path[0].x,b.path[0].z)<.55)b.path.shift();
+  return b.path&&b.path.length?b.path[0]:target;
 }
 function rayWall(x,z,ang,maxD){
   // step ray until wall
@@ -1075,7 +1115,7 @@ function startMatch(m,opts){
     bots.push(b);
   }
   // ensure no bot spawns on player
-  state="play"; document.body.classList.add("phone-playing");
+  state="play"; buyPhase=true; document.body.classList.add("phone-playing");
   document.getElementById("respawnScreen").classList.remove("on");
   document.getElementById("menu").classList.add("hidden");
   document.getElementById("endScreen").classList.add("hidden");
@@ -1083,7 +1123,8 @@ function startMatch(m,opts){
   document.getElementById("hud").classList.add("on");
   buildWeaponBar();
   updateTeamHud();
-  if(cvs.requestPointerLock){ try{ cvs.requestPointerLock(); }catch(e){} }
+  if(cvs.requestPointerLock&&!document.body.classList.contains("phone-mode")){ try{ cvs.requestPointerLock(); }catch(e){} }
+  if(window.__ghostResetPhoneControls)window.__ghostResetPhoneControls();\n  setTimeout(()=>{if(state==="play"&&buyPhase)toggleBuyMenu();},180);
   document.getElementById("modeBadge").textContent=cfg.name+" · "+cfg.goal+(opts.peers&&opts.peers.length?" · СЕТЬ":"");
   popKill("МАТЧ НАЧАТ",cfg.name);
   logAction("СТАРТ МАТЧА",actorLabel(player),"режим "+cfg.name+" · цель "+cfg.goal+" · ботов "+bots.length+" · сеть "+((opts.peers&&opts.peers.length)?opts.peers.length+" игр.":"нет"));
@@ -1288,19 +1329,13 @@ function updateBot(b,dt){
     const ang=Math.atan2(target.z-b.z,target.x-b.x);
     b.aim=ang;
     const hasLOS=losClear(b.x,b.z,target.x,target.z);
-    const want=hasLOS? clamp(d*0.55, 5, 12) : 1.6;
-    const tol=.09;
-    // move toward desired distance, strafe
+    const want=hasLOS?clamp(d*0.55,5,12):1.6,dirx=Math.cos(ang),dirz=Math.sin(ang);
     let mvx=0,mvz=0;
-    const dirx=Math.cos(ang), dirz=Math.sin(ang);
-    if(d>want+1.2){ mvx+=dirx; mvz+=dirz; }
-    else if(d<want-1.6){ mvx-=dirx; mvz-=dirz; }
-    if(b.strafeT<=0){ b.strafe=(Math.random()<.5?-1:1); b.strafeT=rnd(.5,1.6); }
-    mvx+=-dirz*b.strafe*0.85; mvz+=dirx*b.strafe*0.85;
-    const l=Math.hypot(mvx,mvz)||1;
-    const before={x:b.x,z:b.z};
-    moveActor(b,(mvx/l)*b.speed*dt,(mvz/l)*b.speed*dt);
-    if(Math.abs(b.x-before.x)<0.002&&Math.abs(b.z-before.z)<0.002){ b.strafe*=-1; b.strafeT=rnd(.4,1.0); }
+    if(!hasLOS){const wp=botWaypoint(b,target),wa=Math.atan2(wp.z-b.z,wp.x-b.x);mvx=Math.cos(wa);mvz=Math.sin(wa);}
+    else{if(d>want+1.2){mvx+=dirx;mvz+=dirz;}else if(d<want-1.6){mvx-=dirx;mvz-=dirz;}
+      if(b.strafeT<=0){b.strafe=(Math.random()<.5?-1:1);b.strafeT=rnd(.5,1.6);}mvx+=-dirz*b.strafe*.85;mvz+=dirx*b.strafe*.85;}
+    const l=Math.hypot(mvx,mvz)||1,before={x:b.x,z:b.z};moveActor(b,mvx/l*b.speed*dt,mvz/l*b.speed*dt);
+    if(Math.abs(b.x-before.x)<.002&&Math.abs(b.z-before.z)<.002){b.strafe*=-1;b.strafeT=rnd(.4,1);b.pathT=0;}
     // shoot
     if(hasLOS && d<28){
       const w=WEAPONS[b.wep];
@@ -2087,7 +2122,7 @@ function updateHUD(){
 }
 function renderWeaponBar(){ if(!player) return; updateHUD(); }
 function toggleBuyMenu(){
- if(!isPlaying()||!player||player.dead<=0||matchOver||state!=="play") return;
+ if(!isPlaying()||!player||(!buyPhase&&player.dead<=0)||matchOver||state!=="play") return;
  const el=document.getElementById("buyMenu"); if(!el)return;
  if(el.classList.contains("open")){closeBuyMenu();return;}
  // На ПК освобождаем курсор, чтобы можно было выбирать оружие мышью в магазине.
@@ -2101,7 +2136,7 @@ function toggleBuyMenu(){
  list.querySelectorAll("[data-weapon]").forEach(b=>b.addEventListener("click",()=>{const i=Number(b.dataset.weapon);if(!player||player.dead<=0||!isPlaying()||matchOver||playerLoadout.includes(i))return;if(playerLoadout.length<3){playerLoadout.push(i);}else{const at=Math.max(0,playerLoadout.indexOf(player.wep));playerLoadout[at]=i;}player.wep=i;player.magLeft[i]=Math.max(player.magLeft[i],WEAPONS[i].mag);player.reserve[i]=Math.max(player.reserve[i],WEAPONS[i].reserve);buildWeaponBar();renderWeaponBar();closeBuyMenu();}));
  el.classList.add("open"); buyOpen=true;
 }
-function closeBuyMenu(){const el=document.getElementById("buyMenu");if(el)el.classList.remove("open");buyOpen=false;}
+function closeBuyMenu(){const el=document.getElementById("buyMenu");if(el)el.classList.remove("open");buyOpen=false;buyPhase=false;}
 window.__ghostBuyToggle=toggleBuyMenu; window.__ghostBuyClose=closeBuyMenu;
 
 
@@ -3232,7 +3267,8 @@ window.__ghostPhoneAPI = {
   canAct: () => state === "play",
   reload: () => { if (state === "play") startReload(player); },
   dash: () => { if (state === "play") dashPlayer(); },
-  look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); }
+  look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },\n  switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },
+  resetPhone: () => { mouseDown=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
 };
 requestAnimationFrame(loop);
 })();
@@ -3242,9 +3278,11 @@ requestAnimationFrame(loop);
  function initPhoneControls(){
   const toggle=document.getElementById("phoneModeToggle"), controls=document.getElementById("phoneControls");
   const stick=document.getElementById("phoneStick"), knob=document.getElementById("phoneKnob");
+  const slots=document.getElementById("phoneSlots");
   const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
   if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
+  if(slots)slots.querySelectorAll("[data-slot]").forEach(btn=>btn.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing()&&api)api.switchSlot(Number(btn.dataset.slot));}));
   if(phoneBuy) phoneBuy.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing())window.__ghostBuyToggle&&window.__ghostBuyToggle();});
   const closeBuy=document.getElementById("closeBuy");if(closeBuy)closeBuy.addEventListener("click",()=>window.__ghostBuyClose&&window.__ghostBuyClose());
   let enabled=false, stickId=null, lookId=null, lx=0, ly=0;
@@ -3293,14 +3331,15 @@ requestAnimationFrame(loop);
   window.addEventListener("pointerdown",e=>{
    if(!enabled||!playing()||!api||!api.canAct()||lookId!==null)return;
    if(controls.contains(e.target)||e.clientX<innerWidth*.42)return;
-   lookId=e.pointerId;lx=e.clientX;ly=e.clientY;try{e.target.setPointerCapture(e.pointerId);}catch(_){}
+   lookId=e.pointerId;lx=e.clientX;ly=e.clientY;
   },{passive:true});
   window.addEventListener("pointermove",e=>{
    if(!enabled||lookId!==e.pointerId||!playing()||!api)return; e.preventDefault();
    const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;
    if(dx||dy)api.look(dx,dy);
   },{passive:false});
-  ["pointerup","pointercancel"].forEach(type=>window.addEventListener(type,e=>{
+  window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookId=null;stickId=null;};
+  ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
    if(e.pointerId===stickId)clearMove();if(e.pointerId===lookId)clearLook();
   }));
   setEnabled(false);
@@ -3313,7 +3352,7 @@ requestAnimationFrame(loop);
 
 <div id="buyMenu" aria-label="Магазин оружия"><h2>АРСЕНАЛ <button id="closeBuy" style="float:right">ЗАКРЫТЬ ×</button></h2><div id="buyItems"></div></div>
 <div id="phoneControls" aria-label="Сенсорное управление">
- <div class="phone-tip">ПРОВЕДИ ПАЛЬЦЕМ ПО ПРАВОЙ ЧАСТИ ЭКРАНА — ОБЗОР</div><button id="phoneBuy" aria-label="Магазин оружия">B</button>
+ <div class="phone-tip">ПРОВЕДИ ПАЛЬЦЕМ ПО ПРАВОЙ ЧАСТИ ЭКРАНА — ОБЗОР</div><div id="phoneSlots"><button type="button" data-slot="0">1</button><button type="button" data-slot="1">2</button><button type="button" data-slot="2">3</button></div><button id="phoneBuy" aria-label="Магазин оружия">B</button>
  <div class="phone-stick" id="phoneStick"><div class="phone-knob" id="phoneKnob"></div></div>
  <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button><button class="phone-action fire" id="phoneFire">ОГОНЬ</button><button class="phone-action" id="phoneDash">РЫВОК</button></div>
 </div>
