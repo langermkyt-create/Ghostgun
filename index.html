@@ -448,6 +448,24 @@ body.phone-mode .phone-actions #phoneFire{display:block}
 #menu .menu-view{min-width:0}
 @media(max-height:700px){#menu{padding-top:8px!important;padding-bottom:24px!important}#menu>.ghost-frame{margin-top:8px!important;margin-bottom:18px!important}}
 
+
+
+/* FIX Android WebView: phone-mode disables native gestures globally; restore
+   vertical scrolling for menus and reliable taps for lobby/menu controls. */
+html.phone-multitouch-lock #buyMenu,
+html.phone-multitouch-lock #buyMenu *{
+  touch-action:pan-y!important;
+  overscroll-behavior:contain!important;
+}
+html.phone-multitouch-lock #menu,
+html.phone-multitouch-lock #menu *{
+  touch-action:pan-y!important;
+}
+html.phone-multitouch-lock #lobby,
+html.phone-multitouch-lock #lobby *{
+  touch-action:manipulation!important;
+}
+
 /* FIX: закупка — отдельная прокручиваемая панель, в том числе в Android WebView. */
 #buyMenu{box-sizing:border-box;max-height:90dvh;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y!important;scrollbar-width:thin;scrollbar-color:rgba(155,140,255,.6) rgba(255,255,255,.04)}
 #buyMenu h2{position:sticky;top:-18px;z-index:2;padding:2px 0 10px;background:rgba(12,14,25,.98)}
