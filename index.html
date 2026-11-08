@@ -3332,7 +3332,7 @@ window.__ghostPhoneAPI = {
 requestAnimationFrame(loop);
 })();
 
-/* Телефонный режим: сенсорное управление с независимыми pointer-id для двух пальцев. */
+/* Телефонный режим: независимое управление тремя и более касаниями. */
 (function(){
  function initPhoneControls(){
   const toggle=document.getElementById("phoneModeToggle"), controls=document.getElementById("phoneControls");
@@ -3379,119 +3379,106 @@ requestAnimationFrame(loop);
    setKey("KeyW",dy < -max*.2);setKey("KeyS",dy > max*.2);
    setKey("KeyA",dx < -max*.2);setKey("KeyD",dx > max*.2);
   }
-  stick.addEventListener("pointerdown",e=>{
-   if(!enabled||!playing()||stickId!==null)return;
-   e.preventDefault();e.stopPropagation();stickId=e.pointerId;
-   // Для touch браузер уже включает implicit pointer capture; явный захват не нужен.
-   move(e);
-  });
-  stick.addEventListener("pointermove",e=>{if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
-  
-  fire.addEventListener("pointerdown",e=>{
-   if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
-   e.preventDefault();e.stopPropagation();firePointers.add(e.pointerId);api.setPhoneFireDown(true);fire.classList.add("active");
-   // Не захватываем указатель вручную: все пальцы отслеживаются глобально.
-   lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  });
+  const useTouchEvents=("ontouchstart" in window)||(navigator.maxTouchPoints>0);
+  if(!useTouchEvents){
+   stick.addEventListener("pointerdown",e=>{
+    if(!enabled||!playing()||stickId!==null)return;
+    e.preventDefault();e.stopPropagation();stickId=e.pointerId;move(e);
+   });
+   stick.addEventListener("pointermove",e=>{if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
+   fire.addEventListener("pointerdown",e=>{
+    if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
+    e.preventDefault();e.stopPropagation();firePointers.add(e.pointerId);api.setPhoneFireDown(true);fire.classList.add("active");
+    lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   });
+  }
   
   reload.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.reload();});
   dash.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.dash();});
-  // Обзор обрабатывается на window: палец может выйти за границы canvas/stage.
-  // Не начинаем обзор на кнопках или джойстике — так можно одновременно двигаться и смотреть.
-  // Слушаем в capture-фазе: кнопка огня останавливает всплытие pointerdown,
-  // поэтому обычный window-обработчик не видел палец, нажавший огонь.
-  // Capture позволяет независимо отслеживать каждый палец, включая палец на огне.
-  window.addEventListener("pointerdown",e=>{
-   if(!enabled||!playing()||!api||!api.canAct())return;
-   const target=e.target;
-   // Вся правая часть экрана — зона обзора. Исключаем только реальные кнопки,
-   // а не весь слой phoneControls: его невидимая область не должна блокировать камеру.
-   if(e.clientX<innerWidth*.42)return;
-   if(stick.contains(target)||(slots&&slots.contains(target)))return;
-   if(target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#buyMenu"))return;
-   if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  },{passive:true,capture:true});
-  window.addEventListener("pointermove",e=>{
+  // На Android используем Touch Events: они надёжнее сохраняют три независимых касания
+  // в WebView/Chrome. На устройствах без touch API остаётся Pointer Events.
+  if(useTouchEvents){
+   const touchRoles=new Map();
+   const point=t=>({clientX:t.clientX,clientY:t.clientY});
+   function touchStart(e){
     if(!enabled||!playing()||!api)return;
-    // Один общий маршрутизатор событий: джойстик и обзор не перехватывают указатели друг у друга.
+    const target=e.target;
+    if(target.closest&&target.closest("#buyMenu"))return;
+    const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
+    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
+    const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
+    const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy");
+    let handled=onFire||onStick||onSlots||onUtility;
+    for(const touch of e.changedTouches){
+     const id=touch.identifier;
+     if(onFire){
+      firePointers.add(id);touchRoles.set(id,"fire");
+      lookPointers.set(id,{x:touch.clientX,y:touch.clientY});
+      api.setPhoneFireDown(true);fire.classList.add("active");
+     }else if(onStick){
+      if(stickId===null){stickId=id;touchRoles.set(id,"stick");move(point(t));}
+     }else if(!onSlots&&!onUtility&&touch.clientX>=innerWidth*.42){
+      touchRoles.set(id,"look");lookPointers.set(id,{x:touch.clientX,y:touch.clientY});handled=true;
+     }
+    }
+    if(handled)e.preventDefault();
+   }
+   function touchMove(e){
+    if(!enabled||!playing()||!api)return;
+    let handled=false;
+    for(const touch of e.changedTouches){
+     const id=touch.identifier,role=touchRoles.get(id);
+     if(role==="stick"&&stickId===id){move(point(touch));handled=true;}
+     else if(role==="look"||role==="fire"){
+      const prev=lookPointers.get(id);if(!prev)continue;
+      const dx=touch.clientX-prev.x,dy=touch.clientY-prev.y;
+      lookPointers.set(id,{x:touch.clientX,y:touch.clientY});
+      if(dx||dy)api.look(dx,dy);
+      handled=true;
+     }
+    }
+    if(handled)e.preventDefault();
+   }
+   function touchEnd(e){
+    for(const touch of e.changedTouches){
+     const id=touch.identifier,role=touchRoles.get(id);
+     if(role==="stick"&&stickId===id)clearMove();
+     if(role==="look"||role==="fire")clearLook(id);
+     if(role==="fire"){
+      firePointers.delete(id);
+      api.setPhoneFireDown(firePointers.size>0);
+      if(!firePointers.size)fire.classList.remove("active");
+     }
+     touchRoles.delete(id);
+    }
+   }
+   window.addEventListener("touchstart",touchStart,{capture:true,passive:false});
+   window.addEventListener("touchmove",touchMove,{capture:true,passive:false});
+   window.addEventListener("touchend",touchEnd,{capture:true,passive:false});
+   window.addEventListener("touchcancel",touchEnd,{capture:true,passive:false});
+  }else{
+   window.addEventListener("pointerdown",e=>{
+    if(!enabled||!playing()||!api||!api.canAct())return;
+    const target=e.target;
+    if(e.clientX<innerWidth*.42)return;
+    if(stick.contains(target)||(slots&&slots.contains(target)))return;
+    if(target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#buyMenu"))return;
+    if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   },{passive:true,capture:true});
+   window.addEventListener("pointermove",e=>{
+    if(!enabled||!playing()||!api)return;
     if(e.pointerId===stickId){e.preventDefault();move(e);return;}
-    const prev=lookPointers.get(e.pointerId);
-    if(!prev)return; e.preventDefault();
+    const prev=lookPointers.get(e.pointerId);if(!prev)return;e.preventDefault();
     const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
     lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(dx||dy)api.look(dx,dy);
    },{passive:false,capture:true});
-  window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookPointers.clear();stickId=null;};
-  ["pointerup","pointercancel"].forEach(type=>window.addEventListener(type,e=>{
+   ["pointerup","pointercancel"].forEach(type=>window.addEventListener(type,e=>{
     if(e.pointerId===stickId)clearMove();
     if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
-    if(firePointers.delete(e.pointerId)){if(api)api.setPhoneFireDown(firePointers.size>0);if(!firePointers.size)fire.classList.remove("active");}
+    if(firePointers.delete(e.pointerId)){api.setPhoneFireDown(firePointers.size>0);if(!firePointers.size)fire.classList.remove("active");}
    },{capture:true}));
-  // Pointer Events handle every finger independently; CSS touch-action:none prevents browser gestures.
-  /* Disabled legacy Touch Events path to avoid cancelling Pointer Events on Android.
-  const touchRoles=new Map();
-  const point=t=>({clientX:t.clientX,clientY:t.clientY});
-  function touchStart(e){
-   if(!enabled||!playing())return;
-   const target=e.target;
-   // Не перехватываем касания интерфейса магазина: иначе preventDefault
-   // отменяет синтетический click на кнопках «ЗАКРЫТЬ» и выбора оружия.
-   if(target.closest&&target.closest("#buyMenu"))return;
-   const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
-   const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
-   const rightSide=[...e.changedTouches].some(t=>t.clientX>=innerWidth*.42);
-   if(onFire||onStick||rightSide)e.preventDefault();
-   for(const t of e.changedTouches){
-    const id=t.identifier;
-    if(onFire){
-     firePointers.add(id);touchRoles.set(id,"fire");
-     lookPointers.set(id,{x:t.clientX,y:t.clientY});
-     if(api)api.setPhoneFireDown(true);
-     fire.classList.add("active");
-    }else if(onStick){
-     if(stickId===null){stickId=id;touchRoles.set(id,"stick");move(point(t));}
-    }else if(t.clientX>=innerWidth*.42){
-     touchRoles.set(id,"look");lookPointers.set(id,{x:t.clientX,y:t.clientY});
-    }
-   }
   }
-  function touchMove(e){
-   if(!enabled||!playing())return;
-   let handled=false;
-   for(const t of e.changedTouches){
-    const role=touchRoles.get(t.identifier);
-    if(role==="stick"){move(point(t));handled=true;}
-    else if(role==="look"||role==="fire"){
-     // Палец огня одновременно удерживает стрельбу и может вращать камеру.
-     // Каждый touch-id хранит собственную позицию, не затрагивая джойстик/другие пальцы.
-     const prev=lookPointers.get(t.identifier);if(!prev)continue;
-     const dx=t.clientX-prev.x,dy=t.clientY-prev.y;
-     lookPointers.set(t.identifier,{x:t.clientX,y:t.clientY});
-     if(dx||dy)api.look(dx,dy);
-     handled=true;
-    }
-   }
-   if(handled)e.preventDefault();
-  }
-  function touchEnd(e){
-   for(const t of e.changedTouches){
-    const id=t.identifier,role=touchRoles.get(id);
-    if(role==="stick"&&stickId===id)clearMove();
-    if(role==="look")clearLook(id);
-    if(role==="fire"){
-     clearLook(id);
-     firePointers.delete(id);
-     if(api)api.setPhoneFireDown(firePointers.size>0);
-     if(!firePointers.size)fire.classList.remove("active");
-    }
-    touchRoles.delete(id);
-   }
-  }
-  window.addEventListener("touchstart",touchStart,{capture:true,passive:false});
-  window.addEventListener("touchmove",touchMove,{capture:true,passive:false});
-  window.addEventListener("touchend",touchEnd,{capture:true,passive:false});
-  window.addEventListener("touchcancel",touchEnd,{capture:true,passive:false});
-  */
   setEnabled(false);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
