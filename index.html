@@ -3403,7 +3403,12 @@ requestAnimationFrame(loop);
   // Capture позволяет независимо отслеживать каждый палец, включая палец на огне.
   window.addEventListener("pointerdown",e=>{
    if(!enabled||!playing()||!api||!api.canAct())return;
-   if(controls.contains(e.target)||e.clientX<innerWidth*.42)return;
+   const target=e.target;
+   // Вся правая часть экрана — зона обзора. Исключаем только реальные кнопки,
+   // а не весь слой phoneControls: его невидимая область не должна блокировать камеру.
+   if(e.clientX<innerWidth*.42)return;
+   if(stick.contains(target)||(slots&&slots.contains(target)))return;
+   if(target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#buyMenu"))return;
    if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   },{passive:true,capture:true});
   window.addEventListener("pointermove",e=>{
