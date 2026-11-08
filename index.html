@@ -3480,7 +3480,8 @@ requestAnimationFrame(loop);
    }
    if(!role){pointerDebug(e,"pointerdown-unassigned"+(fireHit?"-fire-hit":""));return;}
    pointerRoles.set(id,role);
-   try{if(e.target&&e.target.setPointerCapture)e.target.setPointerCapture(id);}catch(_){}
+   // Pointer capture не используем: события уже отслеживаются на document,
+   // а захват на Android WebView может провоцировать отмену остальных касаний.
    e.preventDefault();
    pointerDebug(e,"pointerdown-"+role);
   }
