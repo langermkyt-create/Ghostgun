@@ -3340,6 +3340,17 @@ requestAnimationFrame(loop);
   const slots=document.getElementById("phoneSlots");
   const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
    if(fire&&fire.parentElement!==document.body)document.body.appendChild(fire);
+  function placePhoneFire(){
+   if(!fire)return;
+   const set=(k,v)=>fire.style.setProperty(k,v,"important");
+   set("position","fixed");set("right","calc(92px + env(safe-area-inset-right))");set("left","auto");
+   set("top","auto");set("bottom","calc(18px + env(safe-area-inset-bottom))");
+   set("width","88px");set("height","88px");set("min-width","88px");set("min-height","88px");
+   set("z-index","10010");set("transform","none");
+  }
+  placePhoneFire();
+  window.addEventListener("resize",placePhoneFire,{passive:true});
+  window.addEventListener("orientationchange",()=>setTimeout(placePhoneFire,100),{passive:true});
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
   if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
   if(window.__ghostPhoneControlsInitialized)return;
