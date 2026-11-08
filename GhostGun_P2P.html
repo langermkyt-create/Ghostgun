@@ -1440,6 +1440,29 @@ function buildRenderList(){
   list.sort((a,b)=>b.d-a.d);
   return list;
 }
+function drawWorldLine(a,b,color,width,f){
+  const p1=projectPoint(a.x,a.y,a.z,f),p2=projectPoint(b.x,b.y,b.z,f);
+  if(!p1||!p2)return;
+  ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);
+  ctx.strokeStyle=color;ctx.lineWidth=width||1;ctx.stroke();
+}
+function drawFloorOrnament(x,z,f,phase){
+  const radius=CELL*.34,steps=16;
+  ctx.save();ctx.globalAlpha=.22;
+  for(let ring=0;ring<2;ring++){
+    let prev=null;
+    for(let i=0;i<=steps;i++){
+      const ang=i/steps*TAU+(ring?Math.PI/steps:0)+phase;
+      const rr=radius*(ring?1:.62);
+      const p=projectPoint(x+Math.cos(ang)*rr,.018,z+Math.sin(ang)*rr,f);
+      if(prev&&p){ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(p.x,p.y);ctx.strokeStyle=ring?"#8bded5":"#aa8cff";ctx.lineWidth=1;ctx.stroke();}
+      prev=p;
+    }
+  }
+  const c=projectPoint(x,.02,z,f);
+  if(c){ctx.fillStyle="#b9a6ff";ctx.shadowColor="#9b82ff";ctx.shadowBlur=8;ctx.fillRect(c.x-1,c.y-1,2,2);}
+  ctx.restore();
+}
 function renderArena(){
   const f=focal();
   drawSky(f);
@@ -1448,9 +1471,16 @@ function renderArena(){
   for(let i=0;i<list.length;i++){
     const it=list[i];
     if(it.kind!=="floor") continue;
-    const col = it.shade>0.95?[26,18,44]:[21,14,36];
-    drawPoly([{x:it.x0,y:0,z:it.z0},{x:it.x0+CELL*2,y:0,z:it.z0},{x:it.x0+CELL*2,y:0,z:it.z0+CELL*2},{x:it.x0,y:0,z:it.z0+CELL*2}],
+    const col = it.shade>0.95?[29,22,48]:[22,17,38];
+    const x1=it.x0+CELL*2,z1=it.z0+CELL*2;
+    drawPoly([{x:it.x0,y:0,z:it.z0},{x:x1,y:0,z:it.z0},{x:x1,y:0,z:z1},{x:it.x0,y:0,z:z1}],
       fogc(col,it.fogd),f);
+    const seam=fogc([76,61,112],it.fogd);
+    drawWorldLine({x:it.x0,y:.012,z:it.z0},{x:x1,y:.012,z:it.z0},seam,.8,f);
+    drawWorldLine({x:it.x0,y:.012,z:it.z0},{x:it.x0,y:.012,z:z1},seam,.8,f);
+    drawWorldLine({x:it.x0+CELL,y:.014,z:it.z0},{x:it.x0+CELL,y:.014,z:z1},fogc([51,43,78],it.fogd),.65,f);
+    drawWorldLine({x:it.x0,y:.014,z:it.z0+CELL},{x:x1,y:.014,z:it.z0+CELL},fogc([51,43,78],it.fogd),.65,f);
+    if(((Math.round(it.x0/CELL)+Math.round(it.z0/CELL))%5+5)%5===0&&it.fogd<20)drawFloorOrnament(it.x0+CELL,it.z0+CELL,f,(Math.round(it.x0+it.z0)%4)*.18);
   }
   // 2) walls, actors, fx far -> near
   for(const it of list){
@@ -1458,6 +1488,13 @@ function renderArena(){
     if(it.kind==="wall"){
       const d=Math.hypot(it.f.p[0].x-cam.x,it.f.p[0].z-cam.z);
       drawPoly(it.f.p, fogc(it.f.c,d), f);
+      const topA=it.f.p[2],topB=it.f.p[3];
+      drawWorldLine(topA,topB,fogc([154,125,214],d),1.6,f);
+      const mid={x:(topA.x+topB.x)*.5,y:2.25,z:(topA.z+topB.z)*.5};
+      if((Math.round(mid.x/CELL)+Math.round(mid.z/CELL))%4===0){
+        drawWorldLine({x:mid.x,y:.55,z:mid.z},{x:mid.x,y:2.65,z:mid.z},fogc([92,184,178],d),1.1,f);
+        drawWorldLine({x:mid.x-.22,y:2.65,z:mid.z},{x:mid.x+.22,y:2.65,z:mid.z},fogc([92,184,178],d),1.1,f);
+      }
     } else if(it.kind==="torch"){
       drawTorch(it.t,f);
     } else if(it.kind==="actor"){
@@ -3490,6 +3527,12 @@ requestAnimationFrame(loop);
   document.addEventListener("touchend",touchEnd,{capture:true,passive:false});
   document.addEventListener("touchcancel",touchCancel,{capture:true,passive:false});
   const isApkVersion = new URLSearchParams(location.search).get("app") === "1" || /GhostGunApp/i.test(navigator.userAgent) || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  // Keep the game in landscape wherever the platform permits orientation locking.
+  const lockLandscape=()=>{try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock("landscape").catch(()=>{});}catch(e){}};
+  lockLandscape();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)lockLandscape();});
+  window.addEventListener("orientationchange",()=>setTimeout(lockLandscape,120),{passive:true});
+  window.addEventListener("pointerdown",lockLandscape,{once:true,passive:true});
   setEnabled(isApkVersion);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
