@@ -1123,7 +1123,8 @@ function startMatch(m,opts){
   document.getElementById("hud").classList.add("on");
   buildWeaponBar();
   updateTeamHud();
-  if(cvs.requestPointerLock&&!document.body.classList.contains("phone-mode")){ try{ cvs.requestPointerLock(); }catch(e){} }\n  if(window.__ghostResetPhoneControls)window.__ghostResetPhoneControls();\n  setTimeout(()=>{if(state==="play"&&buyPhase)toggleBuyMenu();},180);
+  if(cvs.requestPointerLock&&!document.body.classList.contains("phone-mode")){ try{ cvs.requestPointerLock(); }catch(e){} }
+  if(window.__ghostResetPhoneControls)window.__ghostResetPhoneControls();\n  setTimeout(()=>{if(state==="play"&&buyPhase)toggleBuyMenu();},180);
   document.getElementById("modeBadge").textContent=cfg.name+" · "+cfg.goal+(opts.peers&&opts.peers.length?" · СЕТЬ":"");
   popKill("МАТЧ НАЧАТ",cfg.name);
   logAction("СТАРТ МАТЧА",actorLabel(player),"режим "+cfg.name+" · цель "+cfg.goal+" · ботов "+bots.length+" · сеть "+((opts.peers&&opts.peers.length)?opts.peers.length+" игр.":"нет"));
@@ -3266,7 +3267,8 @@ window.__ghostPhoneAPI = {
   canAct: () => state === "play",
   reload: () => { if (state === "play") startReload(player); },
   dash: () => { if (state === "play") dashPlayer(); },
-  look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },\n  switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },\n  resetPhone: () => { mouseDown=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
+  look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },\n  switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },
+  resetPhone: () => { mouseDown=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
 };
 requestAnimationFrame(loop);
 })();
@@ -3276,10 +3278,12 @@ requestAnimationFrame(loop);
  function initPhoneControls(){
   const toggle=document.getElementById("phoneModeToggle"), controls=document.getElementById("phoneControls");
   const stick=document.getElementById("phoneStick"), knob=document.getElementById("phoneKnob");
-  const slots=document.getElementById("phoneSlots");\n  const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
+  const slots=document.getElementById("phoneSlots");
+  const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
   if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
-  if(slots)slots.querySelectorAll("[data-slot]").forEach(btn=>btn.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing()&&api)api.switchSlot(Number(btn.dataset.slot));}));\n  if(phoneBuy) phoneBuy.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing())window.__ghostBuyToggle&&window.__ghostBuyToggle();});
+  if(slots)slots.querySelectorAll("[data-slot]").forEach(btn=>btn.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing()&&api)api.switchSlot(Number(btn.dataset.slot));}));
+  if(phoneBuy) phoneBuy.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing())window.__ghostBuyToggle&&window.__ghostBuyToggle();});
   const closeBuy=document.getElementById("closeBuy");if(closeBuy)closeBuy.addEventListener("click",()=>window.__ghostBuyClose&&window.__ghostBuyClose());
   let enabled=false, stickId=null, lookId=null, lx=0, ly=0;
   const api=window.__ghostPhoneAPI;
@@ -3334,7 +3338,8 @@ requestAnimationFrame(loop);
    const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;
    if(dx||dy)api.look(dx,dy);
   },{passive:false});
-  window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookId=null;stickId=null;};\n  ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
+  window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookId=null;stickId=null;};
+  ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
    if(e.pointerId===stickId)clearMove();if(e.pointerId===lookId)clearLook();
   }));
   setEnabled(false);
