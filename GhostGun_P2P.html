@@ -2918,10 +2918,6 @@ Net.onMsg=function(m){
   }
 };
 
-/* ================= LOOP ================= */
-let last=0;
-function loop(ts){
-  
 function showMenuView(viewId){
   document.querySelectorAll("#menu .menu-view").forEach(v=>v.classList.add("hidden"));
   const target=document.getElementById(viewId);
@@ -2958,6 +2954,12 @@ document.getElementById("exitGame").addEventListener("click",()=>{
   const note=document.getElementById("exitNote");
   if(note) note.classList.remove("hidden");
 });
+
+
+/* ================= LOOP ================= */
+let last=0;
+function loop(ts){
+  
 
 requestAnimationFrame(loop);
   const now=ts||performance.now();
