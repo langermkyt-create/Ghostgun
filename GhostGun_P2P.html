@@ -3397,19 +3397,21 @@ requestAnimationFrame(loop);
   dash.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.dash();});
   // Обзор обрабатывается на window: палец может выйти за границы canvas/stage.
   // Не начинаем обзор на кнопках или джойстике — так можно одновременно двигаться и смотреть.
+  // Слушаем в capture-фазе: кнопка огня останавливает всплытие pointerdown,
+  // поэтому обычный window-обработчик не видел палец, нажавший огонь.
+  // Capture позволяет независимо отслеживать каждый палец, включая палец на огне.
   window.addEventListener("pointerdown",e=>{
    if(!enabled||!playing()||!api||!api.canAct())return;
    if(controls.contains(e.target)||e.clientX<innerWidth*.42)return;
    if(!lookPointers.has(e.pointerId))lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-   try{if(e.target&&e.target.setPointerCapture)e.target.setPointerCapture(e.pointerId);}catch(_){}
-  },{passive:true});
+  },{passive:true,capture:true});
   window.addEventListener("pointermove",e=>{
    const prev=lookPointers.get(e.pointerId);
    if(!enabled||!prev||!playing()||!api)return; e.preventDefault();
    const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
    lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
    if(dx||dy)api.look(dx,dy);
-  },{passive:false});
+  },{passive:false,capture:true});
   window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookPointers.clear();stickId=null;};
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
    if(e.pointerId===stickId)clearMove();if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
