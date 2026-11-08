@@ -450,6 +450,10 @@ body.phone-mode .phone-actions #phoneFire{display:block}
 
 
 
+
+/* FIX: hidden state must override high-specificity mobile display rules. */
+#menu.hidden,#lobby.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
 /* FIX Android WebView: phone-mode disables native gestures globally; restore
    vertical scrolling for menus and reliable taps for lobby/menu controls. */
 html.phone-multitouch-lock #buyMenu,
