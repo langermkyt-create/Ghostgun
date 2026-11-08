@@ -3365,13 +3365,9 @@ requestAnimationFrame(loop);
   function stopAll(){clearMove();clearLook();firePointers.clear();if(api){api.setMouseDown(false);api.setPhoneFireDown(false);}fire.classList.remove("active");}
   window.addEventListener("blur",stopAll);
   document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll();});
-  // Запрещаем браузеру трактовать одновременные касания как pinch/scroll-жест.
-  // Это не заменяет Pointer Events: только блокирует нативную обработку multi-touch.
-  function blockNativeMultiTouch(e){
-   if(enabled&&e.touches&&e.touches.length>1&&e.cancelable)e.preventDefault();
-  }
-  document.addEventListener("touchstart",blockNativeMultiTouch,{capture:true,passive:false});
-  document.addEventListener("touchmove",blockNativeMultiTouch,{capture:true,passive:false});
+  // Нативные жесты блокируются через CSS touch-action:none.
+  // Не отменяем Touch Events вручную: на некоторых Android WebView preventDefault()
+  // на touchstart второго/третьего пальца может мешать дальнейшей маршрутизации касаний.
   function setEnabled(value){
    enabled=!!value;toggle.checked=enabled;document.body.classList.toggle("phone-mode",enabled);
    document.documentElement.classList.toggle("phone-multitouch-lock",enabled);
@@ -3392,11 +3388,11 @@ requestAnimationFrame(loop);
   // Временная диагностика multi-touch: не перехватывает касания и не мешает управлению.
   const touchDebug=document.createElement("div");
   touchDebug.id="phoneTouchDebug";
-  touchDebug.style.cssText="position:fixed;left:8px;top:126px;z-index:20000;max-width:calc(100vw - 16px);padding:7px 9px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.92);color:#d9fff2;font:10px/1.45 monospace;white-space:pre-wrap;pointer-events:none;display:none";
+  touchDebug.style.cssText="position:fixed;left:50%;top:48px;transform:translateX(-50%);z-index:20000;width:min(420px,calc(100vw - 16px));max-height:20vh;overflow:hidden;padding:6px 8px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.88);color:#d9fff2;font:9px/1.35 monospace;white-space:pre-wrap;pointer-events:none;display:none";
   const touchDebugCopy=document.createElement("button");
   touchDebugCopy.id="phoneTouchDebugCopy";touchDebugCopy.type="button";
-  touchDebugCopy.textContent="СКОПИРОВАТЬ ДИАГНОСТИКУ";
-  touchDebugCopy.style.cssText="position:fixed;left:8px;top:232px;z-index:20001;padding:8px 11px;border:1px solid #72e6c0;border-radius:7px;background:#142b29;color:#d9fff2;font:bold 10px monospace;pointer-events:auto;display:none";
+  touchDebugCopy.textContent="КОПИРОВАТЬ ЛОГ";
+  touchDebugCopy.style.cssText="position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:20001;padding:6px 10px;border:1px solid #72e6c0;border-radius:7px;background:#142b29;color:#d9fff2;font:bold 9px monospace;pointer-events:auto;display:none";
   document.body.appendChild(touchDebugCopy);
   let touchDebugSnapshot="Диагностика ещё не запускалась.";
   const touchDebugHistory=[];
@@ -3442,7 +3438,8 @@ requestAnimationFrame(loop);
    return el;
   }
   function pointerDebug(e,label,ended){
-   updateTouchDebug({touches:{length:pointerRoles.size},changedTouches:{length:1}},label,ended||"-");
+   const meta=e&&typeof e.pointerId==="number"?" id="+e.pointerId+" type="+e.pointerType+" primary="+e.isPrimary:"";
+   updateTouchDebug({touches:{length:pointerRoles.size},changedTouches:{length:1}},label+meta,ended||"-");
   }
   function pointerDown(e){
    const id=e.pointerId,target=pointerTarget(e);
