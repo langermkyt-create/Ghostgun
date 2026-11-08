@@ -430,6 +430,29 @@ body.phone-mode .phone-actions{right:14px;bottom:18px;grid-template-columns:54px
 body.phone-mode .phone-actions #phoneFire{display:block}
 @media(max-width:600px){body.phone-mode #menu .ghost-frame{max-height:94dvh;overflow:auto}body.phone-mode .phone-stick{width:100px;height:100px;left:15px;bottom:16px}.phone-actions{right:12px;bottom:15px;grid-template-columns:48px 62px;gap:7px}.phone-action{height:46px}.phone-action.fire{width:62px;height:62px}}
 #buyMenu{display:none;position:fixed;z-index:10001;inset:10% 8%;overflow:auto;padding:18px;background:rgba(12,14,25,.97);border:1px solid #8e86c8;border-radius:16px;box-shadow:0 20px 80px #000b;color:#f4f2ff}#buyMenu.open{display:block}#buyMenu h2{margin:0 0 12px;font-size:20px}#buyItems{display:grid;grid-template-columns:1fr;gap:14px}.buy-class{padding:10px;border:1px solid #403957;border-radius:12px;background:#171426}.buy-class h3{margin:0;color:#d9caff;font-size:14px;letter-spacing:.12em}.buy-class p{margin:4px 0 9px;color:#9d95b8;font-size:10px}.buy-class-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.buy-item{min-width:0;padding:10px;border:1px solid #45425f;border-radius:10px;background:#1c1b30;color:#eee;text-align:left}.buy-item.selected{border-color:#9b83ff;background:#30264a;box-shadow:inset 0 0 0 1px #9b83ff55}.buy-item small{display:block;color:#b5b1d0;margin-top:5px;font-size:10px}#phoneBuy{position:absolute;left:8px;right:auto;top:130px;width:104px;height:38px;border-radius:10px;border:1px solid #c5b6ff;background:linear-gradient(145deg,#6e5ad4,#171126);color:white;font-weight:800;font-size:10px;letter-spacing:.08em;pointer-events:auto;touch-action:none;display:none;box-shadow:0 0 18px #8e78ff44}body.phone-mode.phone-playing #phoneBuy{display:block}@media(max-width:600px){#buyMenu{inset:5% 4%;padding:12px}}
+
+/* Удобная прокрутка всех экранов меню, включая короткий горизонтальный экран. */
+#menu{overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#menu .ghost-frame{max-height:calc(100dvh - 32px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:rgba(155,140,255,.55) rgba(255,255,255,.035)}
+#menu .ghost-frame::-webkit-scrollbar{width:5px}
+#menu .ghost-frame::-webkit-scrollbar-thumb{border-radius:8px;background:rgba(155,140,255,.48)}
+.brand-mark{width:72px;height:68px;margin:0 auto 10px;display:grid;place-items:center;filter:drop-shadow(0 0 14px rgba(155,140,255,.32))}
+.brand-mark svg{display:block;width:68px;height:64px;overflow:visible;animation:ggGhostFloat 3.4s ease-in-out infinite}
+@keyframes ggGhostFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@media(max-height:600px){#menu{align-items:flex-start;padding-top:8px;padding-bottom:8px}#menu .ghost-frame{max-height:calc(100dvh - 16px);margin:0 auto}.brand-mark{width:54px;height:48px;margin-bottom:5px}.brand-mark svg{width:52px;height:48px}}
+@media(prefers-reduced-motion:reduce){.brand-mark svg{animation:none}}
+
+/* FIX: menu itself is the single vertical scroll container; avoids flex/nested-scroll trapping on phones. */
+#menu{display:block!important;position:fixed;inset:0;box-sizing:border-box;width:100%;height:100%;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y!important;padding:12px 12px 28px!important}
+#menu>.ghost-frame{display:block;box-sizing:border-box;width:min(620px,100%);max-width:100%;height:auto;max-height:none!important;min-height:0;overflow:visible!important;flex:none;margin:12px auto 24px!important}
+#menu .menu-view{min-width:0}
+@media(max-height:700px){#menu{padding-top:8px!important;padding-bottom:24px!important}#menu>.ghost-frame{margin-top:8px!important;margin-bottom:18px!important}}
+
+/* FIX: закупка — отдельная прокручиваемая панель, в том числе в Android WebView. */
+#buyMenu{box-sizing:border-box;max-height:90dvh;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y!important;scrollbar-width:thin;scrollbar-color:rgba(155,140,255,.6) rgba(255,255,255,.04)}
+#buyMenu h2{position:sticky;top:-18px;z-index:2;padding:2px 0 10px;background:rgba(12,14,25,.98)}
+#buyItems{min-height:0;padding-bottom:12px}
+@media(max-width:600px){#buyMenu{inset:4% 4%;max-height:92dvh;padding:12px}#buyMenu h2{top:-12px}}
 </style>
 </head>
 <body>
@@ -440,7 +463,7 @@ body.phone-mode .phone-actions #phoneFire{display:block}
 
 <div id="menu">
   <div class="frame ghost-frame">
-    <div class="brand-mark" aria-hidden="true"><span></span><i></i><span></span></div>
+    <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 72 68" role="img" focusable="false"><defs><linearGradient id="ggGhostFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7f5ff"/><stop offset=".58" stop-color="#bcb6ff"/><stop offset="1" stop-color="#83ddd8"/></linearGradient></defs><path d="M13 54V30C13 16.8 23.2 6 36 6s23 10.8 23 24v24l-8-5-7 9-8-6-8 6-7-9z" fill="url(#ggGhostFill)" stroke="#e8e5ff" stroke-width="2" stroke-linejoin="round"/><ellipse cx="27.5" cy="31" rx="3.2" ry="4.4" fill="#292342"/><ellipse cx="44.5" cy="31" rx="3.2" ry="4.4" fill="#292342"/><path d="M31 40q5 5 10 0" fill="none" stroke="#514477" stroke-width="2" stroke-linecap="round"/><circle cx="21" cy="38" r="3" fill="#f39cb8" opacity=".65"/><circle cx="51" cy="38" r="3" fill="#f39cb8" opacity=".65"/><path d="M8 15l2.5 5L16 22l-5.5 2L8 29l-2.5-5L0 22l5.5-2zM59 5l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#9ce7e1"/></svg></div>
     <h1>GHOST <em>GUN</em></h1>
 
     <section id="homeView" class="menu-view home-view">
@@ -1117,8 +1140,10 @@ function startMatch(m,opts){
   }
   // ensure no bot spawns on player
   state="play"; buyPhase=true; document.body.classList.add("phone-playing");
-  document.getElementById("respawnScreen").classList.remove("on");
+  /* При запуске матча закрываем оба слоя подготовки: меню и сетевое лобби. */
+  document.getElementById("lobby").classList.add("hidden");
   document.getElementById("menu").classList.add("hidden");
+  document.getElementById("respawnScreen").classList.remove("on");
   document.getElementById("endScreen").classList.add("hidden");
   document.getElementById("pauseScreen").classList.add("hidden");
   document.getElementById("hud").classList.add("on");
@@ -1216,7 +1241,6 @@ window.addEventListener("keydown",e=>{
   if(e.code>="Digit1"&&e.code<="Digit3"){ const slot=parseInt(e.code.slice(5))-1; const wi=playerLoadout[slot]; if(wi!==undefined){switchWeapon(player,wi);renderWeaponBar();} }
   if(e.code==="KeyB"){toggleBuyMenu();}
   if(e.code==="KeyR") startReload(player);
-  if(e.code==="Space") dashPlayer();
   if(e.code==="KeyQ"||e.code==="KeyE"){ cycleWeapon(e.code==="KeyQ"?-1:1); }
 });
 window.addEventListener("keyup",e=>{ keys[e.code]=false; });
@@ -1233,13 +1257,6 @@ cvs.addEventListener("pointerdown",e=>{ if(state==="play"){ dragging=true; if(!d
 window.addEventListener("pointerup",()=>{ dragging=false; });
 cvs.addEventListener("contextmenu",e=>e.preventDefault());
 
-let dashT=0, dashCd=0;
-function dashPlayer(){
-  if(dashCd>0||!isPlaying()||player.dead>0) return;
-  dashT=.22; dashCd=1.5; shake(.05);
-  logAction("РЫВОК",actorLabel(player),"позиция "+player.x.toFixed(1)+","+player.z.toFixed(1));
-  addFX({type:"ring",x:player.x,y:.2,z:player.z,life:.4,max:.4,col:[160,220,255],sz:2.2});
-}
 function cycleWeapon(d){
   if(!playerLoadout.length)return; const at=Math.max(0,playerLoadout.indexOf(player.wep));
   const wi=playerLoadout[(at+d+playerLoadout.length)%playerLoadout.length];
@@ -1254,8 +1271,7 @@ function updatePlayer(dt){
     if(player.dead<=0) respawn(player, true);
     return;
   }
-  dashT=Math.max(0,dashT-dt); dashCd=Math.max(0,dashCd-dt);
-  const spd = 4.5*(dashT>0?2.25:1);
+  const spd = 4.5;
   let fx=0,fz=0;
   if(keys.KeyW||keys.ArrowUp) fx+=1;
   if(keys.KeyS||keys.ArrowDown) fx-=1;
@@ -1449,6 +1465,29 @@ function buildRenderList(){
   list.sort((a,b)=>b.d-a.d);
   return list;
 }
+function drawWorldLine(a,b,color,width,f){
+  const p1=projectPoint(a.x,a.y,a.z,f),p2=projectPoint(b.x,b.y,b.z,f);
+  if(!p1||!p2)return;
+  ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);
+  ctx.strokeStyle=color;ctx.lineWidth=width||1;ctx.stroke();
+}
+function drawFloorOrnament(x,z,f,phase){
+  const radius=CELL*.34,steps=16;
+  ctx.save();ctx.globalAlpha=.22;
+  for(let ring=0;ring<2;ring++){
+    let prev=null;
+    for(let i=0;i<=steps;i++){
+      const ang=i/steps*TAU+(ring?Math.PI/steps:0)+phase;
+      const rr=radius*(ring?1:.62);
+      const p=projectPoint(x+Math.cos(ang)*rr,.018,z+Math.sin(ang)*rr,f);
+      if(prev&&p){ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(p.x,p.y);ctx.strokeStyle=ring?"#8bded5":"#aa8cff";ctx.lineWidth=1;ctx.stroke();}
+      prev=p;
+    }
+  }
+  const c=projectPoint(x,.02,z,f);
+  if(c){ctx.fillStyle="#b9a6ff";ctx.shadowColor="#9b82ff";ctx.shadowBlur=8;ctx.fillRect(c.x-1,c.y-1,2,2);}
+  ctx.restore();
+}
 function renderArena(){
   const f=focal();
   drawSky(f);
@@ -1457,9 +1496,16 @@ function renderArena(){
   for(let i=0;i<list.length;i++){
     const it=list[i];
     if(it.kind!=="floor") continue;
-    const col = it.shade>0.95?[26,18,44]:[21,14,36];
-    drawPoly([{x:it.x0,y:0,z:it.z0},{x:it.x0+CELL*2,y:0,z:it.z0},{x:it.x0+CELL*2,y:0,z:it.z0+CELL*2},{x:it.x0,y:0,z:it.z0+CELL*2}],
+    const col = it.shade>0.95?[29,22,48]:[22,17,38];
+    const x1=it.x0+CELL*2,z1=it.z0+CELL*2;
+    drawPoly([{x:it.x0,y:0,z:it.z0},{x:x1,y:0,z:it.z0},{x:x1,y:0,z:z1},{x:it.x0,y:0,z:z1}],
       fogc(col,it.fogd),f);
+    const seam=fogc([76,61,112],it.fogd);
+    drawWorldLine({x:it.x0,y:.012,z:it.z0},{x:x1,y:.012,z:it.z0},seam,.8,f);
+    drawWorldLine({x:it.x0,y:.012,z:it.z0},{x:it.x0,y:.012,z:z1},seam,.8,f);
+    drawWorldLine({x:it.x0+CELL,y:.014,z:it.z0},{x:it.x0+CELL,y:.014,z:z1},fogc([51,43,78],it.fogd),.65,f);
+    drawWorldLine({x:it.x0,y:.014,z:it.z0+CELL},{x:x1,y:.014,z:it.z0+CELL},fogc([51,43,78],it.fogd),.65,f);
+    if(((Math.round(it.x0/CELL)+Math.round(it.z0/CELL))%5+5)%5===0&&it.fogd<20)drawFloorOrnament(it.x0+CELL,it.z0+CELL,f,(Math.round(it.x0+it.z0)%4)*.18);
   }
   // 2) walls, actors, fx far -> near
   for(const it of list){
@@ -1467,6 +1513,13 @@ function renderArena(){
     if(it.kind==="wall"){
       const d=Math.hypot(it.f.p[0].x-cam.x,it.f.p[0].z-cam.z);
       drawPoly(it.f.p, fogc(it.f.c,d), f);
+      const topA=it.f.p[2],topB=it.f.p[3];
+      drawWorldLine(topA,topB,fogc([154,125,214],d),1.6,f);
+      const mid={x:(topA.x+topB.x)*.5,y:2.25,z:(topA.z+topB.z)*.5};
+      if((Math.round(mid.x/CELL)+Math.round(mid.z/CELL))%4===0){
+        drawWorldLine({x:mid.x,y:.55,z:mid.z},{x:mid.x,y:2.65,z:mid.z},fogc([92,184,178],d),1.1,f);
+        drawWorldLine({x:mid.x-.22,y:2.65,z:mid.z},{x:mid.x+.22,y:2.65,z:mid.z},fogc([92,184,178],d),1.1,f);
+      }
     } else if(it.kind==="torch"){
       drawTorch(it.t,f);
     } else if(it.kind==="actor"){
@@ -3324,7 +3377,6 @@ window.__ghostPhoneAPI = {
   setPhoneFireDown: v => { phoneFireHeld = !!v; },
   canAct: () => state === "play",
   reload: () => { if (state === "play") startReload(player); },
-  dash: () => { if (state === "play") dashPlayer(); },
   look: (dx, dy) => { cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch - dy * .005, -.8, .8); },
   switchSlot: n => { if(state==="play"&&player&&playerLoadout[n]!==undefined){switchWeapon(player,playerLoadout[n]);renderWeaponBar();} },
   resetPhone: () => { mouseDown=false;phoneFireHeld=false;dragging=false;keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; }
@@ -3338,7 +3390,7 @@ requestAnimationFrame(loop);
   const toggle=document.getElementById("phoneModeToggle"), controls=document.getElementById("phoneControls");
   const stick=document.getElementById("phoneStick"), knob=document.getElementById("phoneKnob");
   const slots=document.getElementById("phoneSlots");
-  const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
+  const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), phoneBuy=document.getElementById("phoneBuy");
    if(fire&&controls&&fire.parentElement!==controls)controls.appendChild(fire);
   function placePhoneFire(){
    if(!fire)return;
@@ -3352,7 +3404,7 @@ requestAnimationFrame(loop);
   window.addEventListener("resize",placePhoneFire,{passive:true});
   window.addEventListener("orientationchange",()=>setTimeout(placePhoneFire,100),{passive:true});
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
-  if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
+  if(!toggle||!controls||!stick||!knob||!fire||!reload) return;
   if(window.__ghostPhoneControlsInitialized)return;
   window.__ghostPhoneControlsInitialized=true;
   // Android WebView/Chrome может терять pointerdown при наложении сенсорных слоёв.
@@ -3369,6 +3421,19 @@ requestAnimationFrame(loop);
   let enabled=false, stickId=null, lookPointers=new Map(), firePointers=new Set();
   const api=window.__ghostPhoneAPI;
   const playing=()=>!!(api&&api.isPlaying());
+  // На Android запускаем действие непосредственно из touchstart.
+  // Pointer Events оставляем для мыши/стилуса, чтобы не зависеть от
+  // преобразования touch -> pointer/click внутри конкретного WebView.
+  const runPhoneAction=(e,action)=>{
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   if(!document.body.classList.contains("phone-mode")||!playing()||!api)return;
+   action();
+  };
+  reload.addEventListener("touchstart",e=>runPhoneAction(e,()=>api.reload()),{passive:false});
+  reload.addEventListener("pointerdown",e=>{
+   if(e.pointerType!=="touch")runPhoneAction(e,()=>api.reload());
+  });
   const setKey=(k,v)=>{if(api)api.setKey(k,v);};
   const releaseKeys=()=>["KeyW","KeyA","KeyS","KeyD"].forEach(k=>setKey(k,false));
   function clearMove(){stickId=null;releaseKeys();knob.style.transform="translate(0px,0px)";}
@@ -3396,69 +3461,11 @@ requestAnimationFrame(loop);
    setKey("KeyW",dy < -max*.2);setKey("KeyS",dy > max*.2);
    setKey("KeyA",dx < -max*.2);setKey("KeyD",dx > max*.2);
   }
-  // Временная диагностика multi-touch: не перехватывает касания и не мешает управлению.
-  const touchDebug=document.createElement("div");
-  touchDebug.id="phoneTouchDebug";
-  touchDebug.style.cssText="position:fixed;left:50%;top:48px;transform:translateX(-50%);z-index:20000;width:min(420px,calc(100vw - 16px));max-height:20vh;overflow:hidden;padding:6px 8px;border:1px solid #72e6c0;border-radius:8px;background:rgba(5,12,18,.88);color:#d9fff2;font:9px/1.35 monospace;white-space:pre-wrap;pointer-events:none;display:none";
-  const touchDebugCopy=document.createElement("button");
-  touchDebugCopy.id="phoneTouchDebugCopy";touchDebugCopy.type="button";
-  touchDebugCopy.textContent="КОПИРОВАТЬ ЛОГ";
-  touchDebugCopy.style.cssText="position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:20001;padding:6px 10px;border:1px solid #72e6c0;border-radius:7px;background:#142b29;color:#d9fff2;font:bold 9px monospace;pointer-events:auto;display:none";
-  document.body.appendChild(touchDebugCopy);
-  let touchDebugSnapshot="Диагностика ещё не запускалась.";
-  const touchDebugHistory=[];
-  function copyTouchDebugFallback(value){
-   const area=document.createElement("textarea");area.value=value;area.style.cssText="position:fixed;left:-9999px;top:0";
-   document.body.appendChild(area);area.select();
-   try{document.execCommand("copy");touchDebugCopy.textContent="СКОПИРОВАНО";}catch(_){touchDebugCopy.textContent="НЕ УДАЛОСЬ СКОПИРОВАТЬ";}
-   area.remove();
-  }
-  touchDebugCopy.addEventListener("click",()=>{
-   const value=touchDebugSnapshot;
-   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(value).then(()=>{touchDebugCopy.textContent="СКОПИРОВАНО";}).catch(()=>copyTouchDebugFallback(value));
-   else copyTouchDebugFallback(value);
-  });
-  document.body.appendChild(touchDebug);
-  // Показываем индикатор сразу при включении телефонного режима, а не только после касания.
-  touchDebug.style.display=document.body.classList.contains("phone-mode")?"block":"none";
-  touchDebugCopy.style.display=document.body.classList.contains("phone-mode")?"block":"none";
-  touchDebug.textContent="TOUCH DEBUG · готов к проверке\\nactive=0 changed=0\\nroles: -\\nstickId="+stickId+" fire=0\\ntarget: -";
-  let touchDebugLastTarget="-",touchDebugRoles=null;
-  function updateTouchDebug(e,label,endedRoles){
-   if(!document.body.classList.contains("phone-mode"))return;
-   const roles=touchDebugRoles?Array.from(touchDebugRoles.entries()).map(([id,role])=>id+":"+role).join(" "):"-";
-   const line=new Date().toLocaleTimeString()+" | "+label+
-    " | active="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
-    " | roles="+(roles||"-")+" | ended="+(endedRoles||"-")+
-    " | stickId="+stickId+" fire="+firePointers.size+" | target="+touchDebugLastTarget;
-   touchDebugHistory.push(line);if(touchDebugHistory.length>30)touchDebugHistory.shift();
-   touchDebug.style.display="block";touchDebugCopy.style.display="block";
-   touchDebugSnapshot="Последние события диагностики (сверху старые, снизу новые):\n"+touchDebugHistory.join("\n");
-   touchDebug.textContent="TOUCH DEBUG · "+label+
-    "\nactive="+(e&&e.touches?e.touches.length:"?")+" changed="+(e&&e.changedTouches?e.changedTouches.length:"?")+
-    "\nroles: "+(roles||"-")+"\nended: "+(endedRoles||"-")+"\nstickId="+stickId+" fire="+firePointers.size+
-    "\ntarget: "+touchDebugLastTarget+"\nсобытий в истории: "+touchDebugHistory.length;
-  }
   // Телефонное управление работает напрямую через Touch Events.
   // Каждый палец отслеживается по Touch.identifier; Pointer Events здесь не используются.
-  const touchRoles=new Map();touchDebugRoles=touchRoles;
-  function touchTarget(t){
-   const el=document.elementFromPoint(t.clientX,t.clientY)||t.target;
-   touchDebugLastTarget=el?(el.id?"#"+el.id:el.tagName.toLowerCase()):"none";
-   return el;
-  }
-  function touchLog(e,label,ended){
-   const changed=e.changedTouches&&e.changedTouches.length?e.changedTouches[0]:null;
-   if(changed)touchTarget(changed);
-   const rawTarget=e.target?(e.target.id?"#"+e.target.id:e.target.tagName.toLowerCase()):"none";
-   const changedInfo=e.changedTouches?Array.from(e.changedTouches).map(t=>t.identifier+"@"+Math.round(t.clientX)+","+Math.round(t.clientY)).join(" "):"-";
-   const activeInfo=e.touches?Array.from(e.touches).map(t=>t.identifier+"@"+Math.round(t.clientX)+","+Math.round(t.clientY)).join(" "):"-";
-   const detail=" | raw="+rawTarget+" changedAt="+changedInfo+" activeAt="+activeInfo+
-    " cancelable="+!!e.cancelable+" prevented="+!!e.defaultPrevented+" visibility="+document.visibilityState+" focus="+(document.hasFocus?document.hasFocus():"?");
-   updateTouchDebug(e,label+(changed?" id="+changed.identifier:"")+detail,ended||"-");
-  }
+  const touchRoles=new Map();
   function assignTouch(t,eventTarget){
-   const id=t.identifier,target=touchTarget(t),origin=eventTarget||null;
+   const id=t.identifier,target=document.elementFromPoint(t.clientX,t.clientY)||t.target,origin=eventTarget||null;
    if(touchRoles.has(id))return false;
    if(target.closest&&target.closest("#buyMenu"))return false;
    const fr=fire.getBoundingClientRect();
@@ -3466,7 +3473,7 @@ requestAnimationFrame(loop);
    const onFire=fireHit||target===fire||(target.closest&&target.closest("#phoneFire"))||(origin===fire||(origin&&origin.closest&&origin.closest("#phoneFire")));
    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
    const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
-   const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#phoneTouchDebugCopy");
+   const onUtility=target.closest&&target.closest("#phoneReload,#phoneBuy");
    let role=null;
    if(onFire){
     role="fire";firePointers.add(id);lookPointers.set(id,{x:t.clientX,y:t.clientY});
@@ -3490,7 +3497,7 @@ requestAnimationFrame(loop);
    // иначе Android может принять второй/третий палец за pinch и отменить группу.
    // Обычные кнопки меню сюда не попадают: handled=false.
    if(handled&&e.cancelable)e.preventDefault();
-   touchLog(e,"touchstart");
+
   }
   function touchMove(e){
    let handled=false;
@@ -3510,7 +3517,7 @@ requestAnimationFrame(loop);
    }
    // Не перехватываем движения пальцев, начавшихся на обычных кнопках/меню.
    if(handled&&e.cancelable)e.preventDefault();
-   touchLog(e,"touchmove");
+
   }
   function endTouch(t){
    const id=t.identifier,role=touchRoles.get(id);
@@ -3530,7 +3537,7 @@ requestAnimationFrame(loop);
     const value=endTouch(e.changedTouches[i]);if(value)ended.push(value);
    }
    // Завершение касаний не требует preventDefault().
-   touchLog(e,"touchend",ended.join(" ")||"-");
+
   }
   function touchCancel(e){
    const ended=[];
@@ -3538,13 +3545,20 @@ requestAnimationFrame(loop);
     const value=endTouch(e.changedTouches[i]);if(value)ended.push(value);
    }
    // Завершение касаний не требует preventDefault().
-   touchLog(e,"touchcancel",ended.join(" ")||"-");
+
   }
   document.addEventListener("touchstart",touchStart,{capture:true,passive:false});
   document.addEventListener("touchmove",touchMove,{capture:true,passive:false});
   document.addEventListener("touchend",touchEnd,{capture:true,passive:false});
   document.addEventListener("touchcancel",touchCancel,{capture:true,passive:false});
-  setEnabled(false);
+  const isApkVersion = new URLSearchParams(location.search).get("app") === "1" || /GhostGunApp/i.test(navigator.userAgent) || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  // Keep the game in landscape wherever the platform permits orientation locking.
+  const lockLandscape=()=>{try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock("landscape").catch(()=>{});}catch(e){}};
+  lockLandscape();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)lockLandscape();});
+  window.addEventListener("orientationchange",()=>setTimeout(lockLandscape,120),{passive:true});
+  window.addEventListener("pointerdown",lockLandscape,{once:true,passive:true});
+  setEnabled(isApkVersion);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
 })();
@@ -3556,7 +3570,7 @@ requestAnimationFrame(loop);
 <div id="phoneControls" aria-label="Сенсорное управление">
  <div class="phone-tip">ПРОВЕДИ ПАЛЬЦЕМ ПО ПРАВОЙ ЧАСТИ ЭКРАНА — ОБЗОР</div><div id="phoneSlots"><button type="button" data-slot="0">1</button><button type="button" data-slot="1">2</button><button type="button" data-slot="2">3</button></div><button id="phoneBuy" aria-label="Закупка">ЗАКУПКА</button>
  <div class="phone-stick" id="phoneStick"><div class="phone-knob" id="phoneKnob"></div></div>
- <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button><button class="phone-action" id="phoneDash">РЫВОК</button></div>
+ <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button></div>
 </div>
 <button class="phone-action fire" id="phoneFire" type="button">ОГОНЬ</button>
 </body></html>
