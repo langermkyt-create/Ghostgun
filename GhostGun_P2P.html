@@ -3408,7 +3408,7 @@ requestAnimationFrame(loop);
    const onFire=fireHit||target===fire||(target.closest&&target.closest("#phoneFire"))||(origin===fire||(origin&&origin.closest&&origin.closest("#phoneFire")));
    const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
    const onSlots=target===slots||(target.closest&&target.closest("#phoneSlots"));
-   const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy,#phoneTouchDebugCopy");
+   const onUtility=target.closest&&target.closest("#phoneReload,#phoneDash,#phoneBuy");
    let role=null;
    if(onFire){
     role="fire";firePointers.add(id);lookPointers.set(id,{x:t.clientX,y:t.clientY});
