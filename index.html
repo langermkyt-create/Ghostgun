@@ -3421,6 +3421,62 @@ requestAnimationFrame(loop);
     if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
     if(firePointers.delete(e.pointerId)){if(api)api.setMouseDown(firePointers.size>0);if(!firePointers.size)fire.classList.remove("active");}
    },{capture:true}));
+  // Unified multi-touch layer for Android: keep each finger independent.
+  const touchRoles=new Map();
+  const point=t=>({clientX:t.clientX,clientY:t.clientY});
+  function touchStart(e){
+   if(!enabled||!playing())return;
+   const target=e.target;
+   const onFire=target===fire||(target.closest&&target.closest("#phoneFire"));
+   const onStick=target===stick||(target.closest&&target.closest("#phoneStick"));
+   const rightSide=[...e.changedTouches].some(t=>t.clientX>=innerWidth*.42);
+   if(onFire||onStick||rightSide)e.preventDefault();
+   for(const t of e.changedTouches){
+    const id=t.identifier;
+    if(onFire){
+     firePointers.add(id);touchRoles.set(id,"fire");
+     if(api)api.setMouseDown(true);
+     fire.classList.add("active");
+    }else if(onStick){
+     if(stickId===null){stickId=id;touchRoles.set(id,"stick");move(point(t));}
+    }else if(t.clientX>=innerWidth*.42){
+     touchRoles.set(id,"look");lookPointers.set(id,{x:t.clientX,y:t.clientY});
+    }
+   }
+  }
+  function touchMove(e){
+   if(!enabled||!playing())return;
+   let handled=false;
+   for(const t of e.changedTouches){
+    const role=touchRoles.get(t.identifier);
+    if(role==="stick"){move(point(t));handled=true;}
+    else if(role==="look"){
+     const prev=lookPointers.get(t.identifier);if(!prev)continue;
+     const dx=t.clientX-prev.x,dy=t.clientY-prev.y;
+     lookPointers.set(t.identifier,{x:t.clientX,y:t.clientY});
+     if(dx||dy)api.look(dx,dy);
+     handled=true;
+    }
+   }
+   if(handled)e.preventDefault();
+  }
+  function touchEnd(e){
+   for(const t of e.changedTouches){
+    const id=t.identifier,role=touchRoles.get(id);
+    if(role==="stick"&&stickId===id)clearMove();
+    if(role==="look")clearLook(id);
+    if(role==="fire"){
+     firePointers.delete(id);
+     if(api)api.setMouseDown(firePointers.size>0);
+     if(!firePointers.size)fire.classList.remove("active");
+    }
+    touchRoles.delete(id);
+   }
+  }
+  window.addEventListener("touchstart",touchStart,{capture:true,passive:false});
+  window.addEventListener("touchmove",touchMove,{capture:true,passive:false});
+  window.addEventListener("touchend",touchEnd,{capture:true,passive:false});
+  window.addEventListener("touchcancel",touchEnd,{capture:true,passive:false});
   setEnabled(false);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initPhoneControls,{once:true});else initPhoneControls();
