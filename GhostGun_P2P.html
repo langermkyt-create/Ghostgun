@@ -1025,7 +1025,7 @@ function fireWeapon(a){
   const ang=a.aim;
   const dirx=Math.cos(ang), dirz=Math.sin(ang);
   if(a.isPlayer){ shake(w.kick*0.7); logAction("ВЫСТРЕЛ",actorLabel(a),logWeapon(a)+" · патронов "+(a.magLeft[a.wep])+" · угол "+ang.toFixed(2)); }
-  sfx(w.id==="shotgun"?"boom":(w.id==="crossbow"?"reload":"bang"));
+  sfx(w.classKey==="shotgun"?"boom":(w.id==="crossbow"?"reload":"bang"));
   const muzzleX=a.x+Math.cos(ang)*0.9, muzzleZ=a.z+Math.sin(ang)*0.9;
   if(w.proj){
     projectiles.push({x:muzzleX,z:muzzleZ,z2:1.15,dx:Math.cos(ang),dz:Math.sin(ang),speed:26,life:2.2,
@@ -3423,4 +3423,5 @@ requestAnimationFrame(loop);
  <div class="phone-stick" id="phoneStick"><div class="phone-knob" id="phoneKnob"></div></div>
  <div class="phone-actions"><button class="phone-action" id="phoneReload">ЗАРЯД</button><button class="phone-action" id="phoneDash">РЫВОК</button></div>
 </div>
+<button class="phone-action fire" id="phoneFire" type="button">ОГОНЬ</button>
 </body></html>
