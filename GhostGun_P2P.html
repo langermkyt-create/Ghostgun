@@ -3284,8 +3284,16 @@ requestAnimationFrame(loop);
   const fire=document.getElementById("phoneFire"), reload=document.getElementById("phoneReload"), dash=document.getElementById("phoneDash"), phoneBuy=document.getElementById("phoneBuy");
   const confirmBtn=document.getElementById("confirmSettings"), applyStatus=document.getElementById("settingsApplyStatus");
   if(!toggle||!controls||!stick||!knob||!fire||!reload||!dash) return;
-  if(slots)slots.querySelectorAll("[data-slot]").forEach(btn=>btn.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing()&&api)api.switchSlot(Number(btn.dataset.slot));}));
-  if(phoneBuy) phoneBuy.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing())window.__ghostBuyToggle&&window.__ghostBuyToggle();});
+  // Android WebView/Chrome может терять pointerdown при наложении сенсорных слоёв.
+  // Для одноразовых действий используем click, который генерируется после полноценного касания.
+  if(slots)slots.querySelectorAll("[data-slot]").forEach(btn=>btn.addEventListener("click",e=>{
+    e.preventDefault();e.stopPropagation();
+    if(document.body.classList.contains("phone-mode")&&playing()&&api)api.switchSlot(Number(btn.dataset.slot));
+  }));
+  if(phoneBuy)phoneBuy.addEventListener("click",e=>{
+    e.preventDefault();e.stopPropagation();
+    if(document.body.classList.contains("phone-mode")&&playing()&&window.__ghostBuyToggle)window.__ghostBuyToggle();
+  });
   const closeBuy=document.getElementById("closeBuy");if(closeBuy)closeBuy.addEventListener("click",()=>window.__ghostBuyClose&&window.__ghostBuyClose());
   let enabled=false, stickId=null, lookId=null, lx=0, ly=0;
   const api=window.__ghostPhoneAPI;
@@ -3321,13 +3329,13 @@ requestAnimationFrame(loop);
   stick.addEventListener("pointermove",e=>{if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>stick.addEventListener(type,e=>{if(e.pointerId===stickId)clearMove();}));
   fire.addEventListener("pointerdown",e=>{
-   if(!enabled||!playing()||!api||!api.canAct())return;
+   if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
    e.preventDefault();e.stopPropagation();api.setMouseDown(true);fire.classList.add("active");
    try{fire.setPointerCapture(e.pointerId);}catch(_){}
   });
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>fire.addEventListener(type,()=>{if(api)api.setMouseDown(false);fire.classList.remove("active");}));
-  reload.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing()&&api)api.reload();});
-  dash.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(enabled&&playing()&&api)api.dash();});
+  reload.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.reload();});
+  dash.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();if(document.body.classList.contains("phone-mode")&&playing()&&api)api.dash();});
   // Обзор обрабатывается на window: палец может выйти за границы canvas/stage.
   // Не начинаем обзор на кнопках или джойстике — так можно одновременно двигаться и смотреть.
   window.addEventListener("pointerdown",e=>{
