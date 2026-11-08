@@ -3470,7 +3470,7 @@ requestAnimationFrame(loop);
    for(let i=0;i<e.changedTouches.length;i++){
     if(assignTouch(e.changedTouches[i]))handled=true;
    }
-   if(handled)e.preventDefault();
+   // CSS touch-action:none уже блокирует системные жесты; Touch Events не отменяем вручную.
    touchLog(e,"touchstart");
   }
   function touchMove(e){
@@ -3489,7 +3489,7 @@ requestAnimationFrame(loop);
      }
     }
    }
-   if(handled)e.preventDefault();
+   // CSS touch-action:none уже блокирует системные жесты; Touch Events не отменяем вручную.
    touchLog(e,"touchmove");
   }
   function endTouch(t){
@@ -3509,7 +3509,7 @@ requestAnimationFrame(loop);
    for(let i=0;i<e.changedTouches.length;i++){
     const value=endTouch(e.changedTouches[i]);if(value)ended.push(value);
    }
-   if(ended.length)e.preventDefault();
+   // Завершение касаний не требует preventDefault().
    touchLog(e,"touchend",ended.join(" ")||"-");
   }
   function touchCancel(e){
@@ -3517,7 +3517,7 @@ requestAnimationFrame(loop);
    for(let i=0;i<e.changedTouches.length;i++){
     const value=endTouch(e.changedTouches[i]);if(value)ended.push(value);
    }
-   if(ended.length)e.preventDefault();
+   // Завершение касаний не требует preventDefault().
    touchLog(e,"touchcancel",ended.join(" ")||"-");
   }
   document.addEventListener("touchstart",touchStart,{capture:true,passive:false});
