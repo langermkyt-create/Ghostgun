@@ -430,6 +430,17 @@ body.phone-mode .phone-actions{right:14px;bottom:18px;grid-template-columns:54px
 body.phone-mode .phone-actions #phoneFire{display:block}
 @media(max-width:600px){body.phone-mode #menu .ghost-frame{max-height:94dvh;overflow:auto}body.phone-mode .phone-stick{width:100px;height:100px;left:15px;bottom:16px}.phone-actions{right:12px;bottom:15px;grid-template-columns:48px 62px;gap:7px}.phone-action{height:46px}.phone-action.fire{width:62px;height:62px}}
 #buyMenu{display:none;position:fixed;z-index:10001;inset:10% 8%;overflow:auto;padding:18px;background:rgba(12,14,25,.97);border:1px solid #8e86c8;border-radius:16px;box-shadow:0 20px 80px #000b;color:#f4f2ff}#buyMenu.open{display:block}#buyMenu h2{margin:0 0 12px;font-size:20px}#buyItems{display:grid;grid-template-columns:1fr;gap:14px}.buy-class{padding:10px;border:1px solid #403957;border-radius:12px;background:#171426}.buy-class h3{margin:0;color:#d9caff;font-size:14px;letter-spacing:.12em}.buy-class p{margin:4px 0 9px;color:#9d95b8;font-size:10px}.buy-class-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.buy-item{min-width:0;padding:10px;border:1px solid #45425f;border-radius:10px;background:#1c1b30;color:#eee;text-align:left}.buy-item.selected{border-color:#9b83ff;background:#30264a;box-shadow:inset 0 0 0 1px #9b83ff55}.buy-item small{display:block;color:#b5b1d0;margin-top:5px;font-size:10px}#phoneBuy{position:absolute;left:8px;right:auto;top:130px;width:104px;height:38px;border-radius:10px;border:1px solid #c5b6ff;background:linear-gradient(145deg,#6e5ad4,#171126);color:white;font-weight:800;font-size:10px;letter-spacing:.08em;pointer-events:auto;touch-action:none;display:none;box-shadow:0 0 18px #8e78ff44}body.phone-mode.phone-playing #phoneBuy{display:block}@media(max-width:600px){#buyMenu{inset:5% 4%;padding:12px}}
+
+/* Удобная прокрутка всех экранов меню, включая короткий горизонтальный экран. */
+#menu{overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#menu .ghost-frame{max-height:calc(100dvh - 32px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:rgba(155,140,255,.55) rgba(255,255,255,.035)}
+#menu .ghost-frame::-webkit-scrollbar{width:5px}
+#menu .ghost-frame::-webkit-scrollbar-thumb{border-radius:8px;background:rgba(155,140,255,.48)}
+.brand-mark{width:72px;height:68px;margin:0 auto 10px;display:grid;place-items:center;filter:drop-shadow(0 0 14px rgba(155,140,255,.32))}
+.brand-mark svg{display:block;width:68px;height:64px;overflow:visible;animation:ggGhostFloat 3.4s ease-in-out infinite}
+@keyframes ggGhostFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@media(max-height:600px){#menu{align-items:flex-start;padding-top:8px;padding-bottom:8px}#menu .ghost-frame{max-height:calc(100dvh - 16px);margin:0 auto}.brand-mark{width:54px;height:48px;margin-bottom:5px}.brand-mark svg{width:52px;height:48px}}
+@media(prefers-reduced-motion:reduce){.brand-mark svg{animation:none}}
 </style>
 </head>
 <body>
@@ -440,7 +451,7 @@ body.phone-mode .phone-actions #phoneFire{display:block}
 
 <div id="menu">
   <div class="frame ghost-frame">
-    <div class="brand-mark" aria-hidden="true"><span></span><i></i><span></span></div>
+    <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 72 68" role="img" focusable="false"><defs><linearGradient id="ggGhostFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7f5ff"/><stop offset=".58" stop-color="#bcb6ff"/><stop offset="1" stop-color="#83ddd8"/></linearGradient></defs><path d="M13 54V30C13 16.8 23.2 6 36 6s23 10.8 23 24v24l-8-5-7 9-8-6-8 6-7-9z" fill="url(#ggGhostFill)" stroke="#e8e5ff" stroke-width="2" stroke-linejoin="round"/><ellipse cx="27.5" cy="31" rx="3.2" ry="4.4" fill="#292342"/><ellipse cx="44.5" cy="31" rx="3.2" ry="4.4" fill="#292342"/><path d="M31 40q5 5 10 0" fill="none" stroke="#514477" stroke-width="2" stroke-linecap="round"/><circle cx="21" cy="38" r="3" fill="#f39cb8" opacity=".65"/><circle cx="51" cy="38" r="3" fill="#f39cb8" opacity=".65"/><path d="M8 15l2.5 5L16 22l-5.5 2L8 29l-2.5-5L0 22l5.5-2zM59 5l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#9ce7e1"/></svg></div>
     <h1>GHOST <em>GUN</em></h1>
 
     <section id="homeView" class="menu-view home-view">
