@@ -441,6 +441,12 @@ body.phone-mode .phone-actions #phoneFire{display:block}
 @keyframes ggGhostFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
 @media(max-height:600px){#menu{align-items:flex-start;padding-top:8px;padding-bottom:8px}#menu .ghost-frame{max-height:calc(100dvh - 16px);margin:0 auto}.brand-mark{width:54px;height:48px;margin-bottom:5px}.brand-mark svg{width:52px;height:48px}}
 @media(prefers-reduced-motion:reduce){.brand-mark svg{animation:none}}
+
+/* FIX: menu itself is the single vertical scroll container; avoids flex/nested-scroll trapping on phones. */
+#menu{display:block!important;position:fixed;inset:0;box-sizing:border-box;width:100%;height:100%;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y!important;padding:12px 12px 28px!important}
+#menu>.ghost-frame{display:block;box-sizing:border-box;width:min(620px,100%);max-width:100%;height:auto;max-height:none!important;min-height:0;overflow:visible!important;flex:none;margin:12px auto 24px!important}
+#menu .menu-view{min-width:0}
+@media(max-height:700px){#menu{padding-top:8px!important;padding-bottom:24px!important}#menu>.ghost-frame{margin-top:8px!important;margin-bottom:18px!important}}
 </style>
 </head>
 <body>
