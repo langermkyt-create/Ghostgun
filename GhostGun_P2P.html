@@ -3382,7 +3382,7 @@ requestAnimationFrame(loop);
   stick.addEventListener("pointerdown",e=>{
    if(!enabled||!playing()||stickId!==null)return;
    e.preventDefault();e.stopPropagation();stickId=e.pointerId;
-   try{stick.setPointerCapture(e.pointerId);}catch(err){}
+   // Для touch браузер уже включает implicit pointer capture; явный захват не нужен.
    move(e);
   });
   stick.addEventListener("pointermove",e=>{if(enabled&&e.pointerId===stickId){e.preventDefault();move(e);}});
@@ -3390,7 +3390,7 @@ requestAnimationFrame(loop);
   fire.addEventListener("pointerdown",e=>{
    if(!document.body.classList.contains("phone-mode")||!playing()||!api||!api.canAct())return;
    e.preventDefault();e.stopPropagation();firePointers.add(e.pointerId);api.setPhoneFireDown(true);fire.classList.add("active");
-   try{fire.setPointerCapture(e.pointerId);}catch(err){}
+   // Не захватываем указатель вручную: все пальцы отслеживаются глобально.
    lookPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   });
   
@@ -3417,7 +3417,7 @@ requestAnimationFrame(loop);
     if(dx||dy)api.look(dx,dy);
    },{passive:false,capture:true});
   window.__ghostResetPhoneControls=()=>{stopAll();if(api&&api.resetPhone)api.resetPhone();lookPointers.clear();stickId=null;};
-  ["pointerup","pointercancel","lostpointercapture"].forEach(type=>window.addEventListener(type,e=>{
+  ["pointerup","pointercancel"].forEach(type=>window.addEventListener(type,e=>{
     if(e.pointerId===stickId)clearMove();
     if(lookPointers.has(e.pointerId))clearLook(e.pointerId);
     if(firePointers.delete(e.pointerId)){if(api)api.setPhoneFireDown(firePointers.size>0);if(!firePointers.size)fire.classList.remove("active");}
