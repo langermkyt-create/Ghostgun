@@ -1,0 +1,8 @@
+{
+  "appId": "com.ghostgun.game",
+  "appName": "GhostGun",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
