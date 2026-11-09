@@ -2492,10 +2492,13 @@ const Net={
     return this.peerLoadPromise;
   },
   peerOptions(){
+    /* Используем STUN и штатные TURN-реле PeerJS.
+       Без TURN соединения между разными мобильными сетями/NAT часто не устанавливаются. */
     return {debug:1,config:{iceServers:[
       {urls:"stun:stun.l.google.com:19302"},
-      {urls:"stun:stun1.l.google.com:19302"}
-    ]}};
+      {urls:"stun:stun1.l.google.com:19302"},
+      {urls:["turn:eu-0.turn.peerjs.com:3478","turn:us-0.turn.peerjs.com:3478"],username:"peerjs",credential:"peerjsp"}
+    ],sdpSemantics:"unified-plan"}};
   },
   peerIdForCode(code){return "ghostgun-"+String(code||"").toLowerCase();},
   peerBroadcast(msg,except){
