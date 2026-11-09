@@ -65,7 +65,7 @@ jobs:
               import re
               data = re.sub(r"(?m)^networkTimeout=.*$", "networkTimeout=120000", data)
           else:
-              data += "\\nnetworkTimeout=120000\\n"
+              data += "\nnetworkTimeout=120000\n"
           p.write_text(data)
           PY
 
