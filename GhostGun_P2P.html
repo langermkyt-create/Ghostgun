@@ -2492,9 +2492,9 @@ const Net={
     return this.peerLoadPromise;
   },
   peerOptions(){
-    /* Используем STUN и штатные TURN-реле PeerJS.
-       Без TURN соединения между разными мобильными сетями/NAT часто не устанавливаются. */
-    return {debug:1,config:{iceServers:[
+    /* Явно фиксируем официальный PeerJS Cloud signaling endpoint.
+       ICE-конфигурация содержит STUN и штатные TURN-реле PeerJS. */
+    return {host:"0.peerjs.com",port:443,path:"/",secure:true,debug:2,config:{iceServers:[
       {urls:"stun:stun.l.google.com:19302"},
       {urls:"stun:stun1.l.google.com:19302"},
       {urls:["turn:eu-0.turn.peerjs.com:3478","turn:us-0.turn.peerjs.com:3478"],username:"peerjs",credential:"peerjsp"}
@@ -2594,8 +2594,23 @@ const Net={
           this.peerStatus(opened?"Соединение с хостом потеряно":"Не удалось подключиться к комнате",true);
           this.fail("Связь с хостом прервана. Проверь код и попробуй войти снова.");
         });
-        conn.on("error",err=>{if(epoch===this.peerEpoch){this.peerStatus("Ошибка соединения: "+(err&&err.message||"проверь код комнаты"),true);this.fail("Хост недоступен. Проверь код комнаты.");}});
-        setTimeout(()=>{if(epoch===this.peerEpoch&&!opened){this.peerStatus("Хост не найден. Проверь код и попробуй ещё раз.",true);this.fail("Комната не найдена или хост не в сети.");}},12000);
+        conn.on("error",err=>{
+          if(epoch!==this.peerEpoch)return;
+          const kind=err&&err.type||"";
+          if(kind==="peer-unavailable"){
+            this.peerStatus("Комната "+code+" не найдена на сервере комнат. Проверь код и попроси хоста заново открыть лобби.",true);
+            this.fail("Хост не зарегистрировал комнату с этим кодом. Проверь код и статус у создателя.");
+          }else{
+            this.peerStatus("Ошибка WebRTC ("+(kind||"соединение")+"): "+(err&&err.message||"сеть недоступна"),true);
+            this.fail("Не удалось установить связь. Проверь интернет у обоих игроков.");
+          }
+        });
+        setTimeout(()=>{
+          if(epoch===this.peerEpoch&&!opened&&this.peerConn===conn){
+            this.peerStatus("Хост не ответил на запрос комнаты "+code+". Убедись, что у него открыто лобби и код не изменился.",true);
+            this.fail("Хост не ответил. Попроси его заново создать лобби и отправить новый код.");
+          }
+        },20000);
       });
       peer.on("error",err=>{if(epoch===this.peerEpoch){this.peerStatus("Ошибка PeerJS: "+(err&&err.message||err.type||"сеть"),true);this.fail("Не удалось подключиться к сервису комнат.");}});
     }catch(err){this.peerRole=null;this.peerStatus(err.message||"Не удалось запустить WebRTC",true);this.fail(err.message||"Не удалось запустить прямое соединение.");}
