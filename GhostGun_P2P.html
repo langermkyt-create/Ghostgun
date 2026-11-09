@@ -2563,7 +2563,7 @@ const Net={
         this.peerStatus("Не удалось создать комнату: "+(err&&err.message||code||"ошибка соединения"),true);
         this.fail("Не удалось создать комнату. Попробуй ещё раз или проверь доступ к PeerJS.");
       });
-      peer.on("disconnected",()=>{if(epoch===this.peerEpoch)this.peerStatus("Потеряна связь с сервисом комнат. Переподключаемся…",true);});
+      peer.on("disconnected",()=>{if(epoch!==this.peerEpoch)return;this.peerStatus("Потеряна связь с сервером комнат. Восстанавливаем регистрацию…",true);try{if(!peer.destroyed)peer.reconnect();}catch(e){this.peerStatus("Не удалось восстановить связь с сервером комнат: "+(e&&e.message||"ошибка"),true);}});
     }catch(err){this.peerRole=null;this.peerStatus(err.message||"Не удалось запустить WebRTC",true);this.fail(err.message||"Не удалось запустить прямое соединение.");}
   },
   async joinP2P(code){
@@ -2612,6 +2612,7 @@ const Net={
           }
         },20000);
       });
+      peer.on("disconnected",()=>{if(epoch!==this.peerEpoch)return;this.peerStatus("Потеряна связь с сервером комнат. Пытаемся восстановить…",true);try{if(!peer.destroyed)peer.reconnect();}catch(e){this.peerStatus("Не удалось восстановить связь: "+(e&&e.message||"ошибка"),true);}});
       peer.on("error",err=>{if(epoch===this.peerEpoch){this.peerStatus("Ошибка PeerJS: "+(err&&err.message||err.type||"сеть"),true);this.fail("Не удалось подключиться к сервису комнат.");}});
     }catch(err){this.peerRole=null;this.peerStatus(err.message||"Не удалось запустить WebRTC",true);this.fail(err.message||"Не удалось запустить прямое соединение.");}
   },
