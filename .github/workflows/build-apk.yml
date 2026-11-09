@@ -55,11 +55,25 @@ jobs:
           PY
           npx cap sync android
 
+      - name: Increase Gradle download timeout
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/gradle/wrapper/gradle-wrapper.properties")
+          data = p.read_text()
+          if "networkTimeout=" in data:
+              import re
+              data = re.sub(r"(?m)^networkTimeout=.*$", "networkTimeout=120000", data)
+          else:
+              data += "\\nnetworkTimeout=120000\\n"
+          p.write_text(data)
+          PY
+
       - name: Build debug APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew --no-daemon assembleDebug
 
       - name: Name installer file
         run: cp android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/GhostGun-Installer.apk
