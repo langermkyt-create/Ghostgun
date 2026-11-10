@@ -3,6 +3,10 @@
   "appName": "GhostGun",
   "webDir": "www",
   "server": {
-    "androidScheme": "https"
+    "url": "https://langermkyt-create.github.io/Ghostgun/",
+    "cleartext": false,
+    "allowNavigation": [
+      "langermkyt-create.github.io"
+    ]
   }
 }
