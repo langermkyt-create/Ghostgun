@@ -539,6 +539,8 @@ html.phone-multitouch-lock #lobby *{
         <div style="font-size:11px;letter-spacing:.18em;color:#8ee6d8">ПРЯМОЕ ПОДКЛЮЧЕНИЕ · WEBRTC</div>
         <div style="font-size:11px;line-height:1.6;color:#b9aed6;margin-top:6px">Создай лобби с этого телефона или компьютера. Друзья подключатся по коду через интернет — общий Wi-Fi не требуется.</div>
         <div id="lanHostStatus" class="srvstat" aria-live="polite">Хостинг запускается при создании лобби</div>
+        <button class="mpbtn" id="btnCheckRoom" style="width:100%;margin-top:8px">Проверить доступность комнаты</button>
+        <div id="lanHostDiagnostics" class="netdiag">Ожидает создания комнаты</div>
         <div id="lanHostAddresses" class="netdiag">Игровые данные передаются напрямую между устройствами. Для поиска друг друга используется бесплатный сервис соединения.</div>
       </div>
       <div class="netbar">
@@ -2559,6 +2561,55 @@ const Net={
     });
     conn.on("error",()=>{delete this.peerConnections[id];delete this.remoteMembers[id];this.broadcastLobby();});
   },
+  peerAttachHealthProbe(conn){
+    conn.on("data",m=>{
+      if(m&&m.t==="ghostgun-health-check"&&m.token){
+        try{conn.send({t:"ghostgun-health-ack",token:m.token,code:this.code});}catch(e){}
+      }
+    });
+    conn.on("error",()=>{});
+  },
+  async checkHostAvailability(reason){
+    const out=document.getElementById("lanHostDiagnostics");
+    const show=(msg,bad)=>{if(out){out.textContent=msg;out.classList.toggle("bad",!!bad);}};
+    if(this.peerRole!=="host"||!this.peer||!this.code){show("Лобби не запущено — проверка недоступна",true);return false;}
+    const host=this.peer, code=this.code, hostId=this.peerIdForCode(code);
+    if(host.destroyed){show("Ошибка: PeerJS-хост уничтожен, комната недоступна",true);return false;}
+    if(host.disconnected){
+      show("Сигнализация отключена. Восстанавливаем регистрацию…",true);
+      try{host.reconnect();}catch(e){show("Не удалось восстановить регистрацию: "+(e.message||"ошибка"),true);return false;}
+      await new Promise(r=>setTimeout(r,1800));
+    }
+    if(this.peer!==host||this.peerRole!=="host"||this.code!==code)return false;
+    if(host.disconnected||!host.open){show("Хост не зарегистрирован на сервере PeerJS (код "+code+")",true);return false;}
+    show((reason||"Проверка")+" · хост зарегистрирован; проверяем подключение независимого клиента…",false);
+    let probe=null,conn=null,timer=null,done=false;
+    return await new Promise(resolve=>{
+      const finish=(ok,msg)=>{
+        if(done)return;done=true;
+        if(timer)clearTimeout(timer);
+        try{if(conn)conn.close();}catch(e){}
+        try{if(probe&&!probe.destroyed)probe.destroy();}catch(e){}
+        show(msg,!ok);resolve(ok);
+      };
+      timer=setTimeout(()=>finish(false,"Хост зарегистрирован, но независимый клиент не подключился за 12 секунд. Возможна блокировка WebRTC/сети."),12000);
+      try{
+        const token=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+        probe=new window.Peer(this.peerOptions());
+        probe.on("open",()=>{
+          if(done)return;
+          conn=probe.connect(hostId,{reliable:true,serialization:"json",metadata:{ghostgunHealthProbe:true}});
+          conn.on("open",()=>{try{conn.send({t:"ghostgun-health-check",token});}catch(e){finish(false,"Канал проверки не смог отправить запрос");}});
+          conn.on("data",m=>{
+            if(m&&m.t==="ghostgun-health-ack"&&m.token===token&&m.code===code)
+              finish(true,"✓ Комната "+code+" реально доступна: независимый клиент подключился и получил ответ от хоста");
+          });
+          conn.on("error",e=>finish(false,"Ошибка проверки подключения: "+((e&&e.type)||e&&e.message||"WebRTC")));
+        });
+        probe.on("error",e=>finish(false,"Не удалось создать проверочного клиента: "+((e&&e.type)||e&&e.message||"PeerJS")));
+      }catch(e){finish(false,"Ошибка проверки: "+(e.message||"PeerJS"));}
+    });
+  },
   async createP2P(mode,attempt){
     attempt=attempt||0; const epoch=++this.peerEpoch;
     try{
@@ -2575,8 +2626,9 @@ const Net={
         this.id=id;this.srvId=null;this.members=[this.selfMember()];
         this.peerStatus("Комната создана · передай друзьям код "+this.code);
         this.showLobby();this.broadcastLobby();
+        setTimeout(()=>{if(this.peer===peer&&this.peerRole==="host")this.checkHostAvailability("После создания");},900);
       });
-      peer.on("connection",conn=>this.peerAttachHostConnection(conn));
+      peer.on("connection",conn=>{if(conn&&conn.metadata&&conn.metadata.ghostgunHealthProbe)this.peerAttachHealthProbe(conn);else this.peerAttachHostConnection(conn);});
       peer.on("error",err=>{
         if(epoch!==this.peerEpoch)return;
         const code=err&&err.type||"";
@@ -2965,6 +3017,18 @@ async function runSingleDeviceNetTest(){
 }
 const selfTestButton=document.getElementById("btnSelfTest");
 if(selfTestButton)selfTestButton.addEventListener("click",runSingleDeviceNetTest);
+const checkRoomButton=document.getElementById("btnCheckRoom");
+if(checkRoomButton)checkRoomButton.addEventListener("click",()=>{
+  checkRoomButton.disabled=true;checkRoomButton.textContent="Проверяем…";
+  Net.checkHostAvailability("Ручная проверка").finally(()=>{checkRoomButton.disabled=false;checkRoomButton.textContent="Проверить доступность комнаты";});
+});
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden&&Net.peerRole==="host"&&Net.peer&&Net.code){
+    const out=document.getElementById("lanHostDiagnostics");
+    if(out)out.textContent="Приложение вернулось на экран · проверяем регистрацию комнаты…";
+    setTimeout(()=>{if(Net.peerRole==="host")Net.checkHostAvailability("После возврата в приложение");},700);
+  }
+});
 
 /* ================= NET RUNTIME ================= */
 let netPlay=false, netSendT=0, netPollT=0, netLobbyT=0;
