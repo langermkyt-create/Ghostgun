@@ -529,6 +529,12 @@ html.phone-multitouch-lock #lobby *{
         <button class="mpbtn" id="btnJoin">Войти</button>
       </div>
     </div>
+      <div class="modpanel" id="selfTestPanel" style="border-color:rgba(180,150,255,.3);background:linear-gradient(145deg,rgba(30,20,48,.82),rgba(12,8,22,.86));margin-top:10px">
+        <div style="font-size:11px;letter-spacing:.16em;color:#c7adff">ТЕСТ НА ОДНОМ УСТРОЙСТВЕ</div>
+        <div style="font-size:11px;line-height:1.55;color:#b9aed6;margin-top:6px">Создаёт временного второго клиента и проверяет сервер комнат, WebRTC и передачу сообщения. Второй телефон не нужен.</div>
+        <button class="mpbtn" id="btnSelfTest" style="width:100%;margin-top:9px">Проверить мультиплеер</button>
+        <div id="selfTestStatus" class="srvstat" aria-live="polite">Проверка ещё не запускалась</div>
+      </div>
       <div class="modpanel" id="lanHostPanel" style="border-color:rgba(142,230,216,.28);background:linear-gradient(145deg,rgba(16,35,38,.78),rgba(12,8,22,.82))">
         <div style="font-size:11px;letter-spacing:.18em;color:#8ee6d8">ПРЯМОЕ ПОДКЛЮЧЕНИЕ · WEBRTC</div>
         <div style="font-size:11px;line-height:1.6;color:#b9aed6;margin-top:6px">Создай лобби с этого телефона или компьютера. Друзья подключатся по коду через интернет — общий Wi-Fi не требуется.</div>
@@ -2895,6 +2901,69 @@ const Net={
     this.fail("");
   }
 };
+/* ================= SELF TEST: TWO PEERS ON ONE DEVICE ================= */
+async function runSingleDeviceNetTest(){
+  const button=document.getElementById("btnSelfTest");
+  const status=document.getElementById("selfTestStatus");
+  const show=(msg,bad)=>{if(status){status.textContent=msg;status.classList.toggle("bad",!!bad);}};
+  if(button){button.disabled=true;button.textContent="Проверяем…";}
+  let host=null,guest=null,hostConn=null,guestConn=null,timer=null,done=false;
+  const cleanup=()=>{
+    try{if(timer)clearTimeout(timer);}catch(e){}
+    [guestConn,hostConn].forEach(c=>{try{if(c)c.close();}catch(e){}});
+    [guest,host].forEach(p=>{try{if(p&&!p.destroyed)p.destroy();}catch(e){}});
+    if(button){button.disabled=false;button.textContent="Повторить проверку";}
+  };
+  const fail=(msg)=>{if(done)return;done=true;show("✕ "+msg,true);cleanup();};
+  const pass=()=>{if(done)return;done=true;show("✓ Успешно: комната зарегистрирована, второй клиент подключился, сообщение доставлено. Это проверяет связь на этом устройстве, но не гарантирует прохождение NAT между разными сетями.",false);cleanup();};
+  try{
+    if(!window.RTCPeerConnection)throw new Error("В этом WebView нет поддержки WebRTC.");
+    const PeerCtor=await Net.loadPeerJS();
+    const opts=Net.peerOptions();
+    const token=Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+    const hostId="ggtest-h-"+token;
+    show("1/3 · Подключаемся к серверу комнат…",false);
+    timer=setTimeout(()=>fail("Истекло 30 секунд. Сервер сигнализации или WebRTC не ответил."),30000);
+    host=new PeerCtor(hostId,opts);
+    host.on("error",e=>fail("Хост: "+((e&&e.type)||"ошибка")+" — "+((e&&e.message)||"нет подробностей")));
+    host.on("open",()=>{
+      if(done)return;
+      show("2/3 · Комната зарегистрирована. Подключаем тестового клиента…",false);
+      guest=new PeerCtor(undefined,opts);
+      guest.on("error",e=>fail("Клиент: "+((e&&e.type)||"ошибка")+" — "+((e&&e.message)||"нет подробностей")));
+      guest.on("open",()=>{
+        if(done)return;
+        guestConn=guest.connect(hostId,{reliable:true,serialization:"json"});
+        guestConn.on("error",e=>fail("Канал клиента: "+((e&&e.message)||"ошибка WebRTC")));
+        guestConn.on("open",()=>{
+          if(done)return;
+          guestConn.send({type:"ghostgun-self-test",token});
+          show("3/3 · Канал открыт. Проверяем доставку сообщения…",false);
+        });
+        guestConn.on("data",data=>{
+          if(done)return;
+          if(data&&data.type==="ghostgun-self-test-ack"&&data.token===token)pass();
+          else fail("Получен неожиданный ответ тестового клиента.");
+        });
+      });
+    });
+    host.on("connection",conn=>{
+      hostConn=conn;
+      conn.on("open",()=>{});
+      conn.on("data",data=>{
+        if(done)return;
+        if(data&&data.type==="ghostgun-self-test"&&data.token===token){
+          try{conn.send({type:"ghostgun-self-test-ack",token});}
+          catch(e){fail("Не удалось отправить ответ по WebRTC.");}
+        }
+      });
+      conn.on("error",e=>fail("Канал хоста: "+((e&&e.message)||"ошибка WebRTC")));
+    });
+  }catch(e){fail((e&&e.message)||"Не удалось запустить тест.");}
+}
+const selfTestButton=document.getElementById("btnSelfTest");
+if(selfTestButton)selfTestButton.addEventListener("click",runSingleDeviceNetTest);
+
 /* ================= NET RUNTIME ================= */
 let netPlay=false, netSendT=0, netPollT=0, netLobbyT=0;
 const netHits={}, netHitHead={};
