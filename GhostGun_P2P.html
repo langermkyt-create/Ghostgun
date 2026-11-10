@@ -556,6 +556,18 @@ html.phone-multitouch-lock #lobby *{
           <button class="mpbtn" id="confirmSettings" type="button" style="width:100%;margin-top:10px">Подтвердить настройки</button>
           <div id="settingsApplyStatus" class="settings-note" aria-live="polite" style="display:none;margin-top:8px;padding-top:8px">Настройки применены</div>
         </div>
+        <div class="modpanel" id="connectionModePanel">
+          <div class="advanced-label">РЕЖИМ СЕТЕВОЙ ИГРЫ</div>
+          <label class="phone-mode-label" style="display:flex;align-items:flex-start;gap:10px;margin:10px 0">
+            <input type="radio" name="connectionMode" value="wifi" id="connectionModeWifi">
+            <span><b>Одна Wi-Fi сеть</b><small>Для устройств, подключённых к одному роутеру. Использует прямое WebRTC-соединение.</small></span>
+          </label>
+          <label class="phone-mode-label" style="display:flex;align-items:flex-start;gap:10px;margin:10px 0">
+            <input type="radio" name="connectionMode" value="internet" id="connectionModeInternet">
+            <span><b>Через интернет</b><small>Для устройств в разных сетях. Надёжное соединение может требовать действующий TURN-сервер.</small></span>
+          </label>
+          <div id="connectionModeHint" class="settings-note" aria-live="polite">Выбери режим для следующего подключения.</div>
+        </div>
         <div class="modpanel">
           <div class="advanced-label">СВОИ МОДЕЛИ</div>
           <div class="modrow">
@@ -2491,21 +2503,17 @@ const Net={
     }).catch(err=>{this.peerLoadPromise=null;throw err;});
     return this.peerLoadPromise;
   },
+  connectionMode(){
+    try{return localStorage.getItem("ghostgun:connectionMode")==="wifi"?"wifi":"internet";}catch(e){return "internet";}
+  },
   peerOptions(){
-    /* PeerJS Cloud используется только для сигнализации.
-       TURN rstream ниже — временные учётные данные (TTL 1 час). */
-    const turnUsername="v1:1794293491:api:-:c1a0b5109f7d7f6540cfe525";
-    const turnCredential="/O9cvO+dwvNHW7hwpjnO6CqCcTLnG+qeN6aEK1NlUS4=";
-    return {host:"0.peerjs.com",port:443,path:"/",secure:true,debug:2,config:{iceServers:[
+    /* Wi-Fi mode делает ставку на прямые локальные ICE-маршруты.
+       Internet mode использует STUN; для сложных NAT нужен отдельный действующий TURN. */
+    const iceServers=this.connectionMode()==="wifi"?[]:[
       {urls:"stun:stun.l.google.com:19302"},
-      {urls:"stun:stun1.l.google.com:19302"},
-      {urls:[
-        "turn:aws-global-1.c.rstream.io:3478?transport=udp",
-        "turn:aws-global-1.c.rstream.io:3478?transport=tcp",
-        "turns:aws-global-1.c.rstream.io:5349?transport=udp",
-        "turns:aws-global-1.c.rstream.io:5349?transport=tcp"
-      ],username:turnUsername,credential:turnCredential}
-    ],sdpSemantics:"unified-plan"}};
+      {urls:"stun:stun1.l.google.com:19302"}
+    ];
+    return {host:"0.peerjs.com",port:443,path:"/",secure:true,debug:2,config:{iceServers,sdpSemantics:"unified-plan"}};
   },
   peerIdForCode(code){return "ghostgun-"+String(code||"").toLowerCase();},
   peerBroadcast(msg,except){
@@ -3072,6 +3080,21 @@ function syncNetworkButtonState(){
 }
 setInterval(syncNetworkButtonState,400);
 syncNetworkButtonState();
+(function(){
+  const radios=[...document.querySelectorAll('input[name="connectionMode"]')];
+  const hint=document.getElementById("connectionModeHint");
+  let saved="internet";try{saved=localStorage.getItem("ghostgun:connectionMode")||"internet";}catch(e){}
+  radios.forEach(r=>{r.checked=r.value===saved;r.addEventListener("change",()=>{
+    if(!r.checked)return;
+    try{localStorage.setItem("ghostgun:connectionMode",r.value);}catch(e){}
+    if(hint)hint.textContent=r.value==="wifi"
+      ?"Выбран режим одной Wi-Fi сети. Оба устройства должны быть подключены к одному роутеру. Сигнализация комнаты всё ещё использует интернет."
+      :"Выбран режим через интернет. Без действующего TURN-сервера соединение между некоторыми мобильными сетями может не установиться.";
+  });});
+  if(hint)hint.textContent=saved==="wifi"
+    ?"Сейчас выбран режим одной Wi-Fi сети. Сигнализация комнаты всё ещё использует интернет."
+    :"Сейчас выбран режим через интернет. Для сложных NAT потребуется действующий TURN-сервер.";
+})();
 document.getElementById("goSettings").addEventListener("click",()=>showMenuView("settingsView"));
 document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>showMenuView("homeView")));
 document.getElementById("exitGame").addEventListener("click",()=>{
