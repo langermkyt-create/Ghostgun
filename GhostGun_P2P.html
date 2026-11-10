@@ -535,14 +535,7 @@ html.phone-multitouch-lock #lobby *{
         <button class="mpbtn" id="btnSelfTest" style="width:100%;margin-top:9px">Проверить мультиплеер</button>
         <div id="selfTestStatus" class="srvstat" aria-live="polite">Проверка ещё не запускалась</div>
       </div>
-      <div class="modpanel" id="lanHostPanel" style="border-color:rgba(142,230,216,.28);background:linear-gradient(145deg,rgba(16,35,38,.78),rgba(12,8,22,.82))">
-        <div style="font-size:11px;letter-spacing:.18em;color:#8ee6d8">ПРЯМОЕ ПОДКЛЮЧЕНИЕ · WEBRTC</div>
-        <div style="font-size:11px;line-height:1.6;color:#b9aed6;margin-top:6px">Создай лобби с этого телефона или компьютера. Друзья подключатся по коду через интернет — общий Wi-Fi не требуется.</div>
-        <div id="lanHostStatus" class="srvstat" aria-live="polite">Хостинг запускается при создании лобби</div>
-        <button class="mpbtn" id="btnCheckRoom" style="width:100%;margin-top:8px">Проверить доступность комнаты</button>
-        <div id="lanHostDiagnostics" class="netdiag">Ожидает создания комнаты</div>
-        <div id="lanHostAddresses" class="netdiag">Игровые данные передаются напрямую между устройствами. Для поиска друг друга используется бесплатный сервис соединения.</div>
-      </div>
+
       <div class="netbar">
         <input id="serverUrl" placeholder="ws://адрес:порт — дополнительный сервер" autocomplete="off" spellcheck="false" aria-label="Адрес дополнительного сервера">
         <button class="mpbtn" id="btnConnect">Доп. сервер</button>
@@ -614,6 +607,14 @@ html.phone-multitouch-lock #lobby *{
       <button class="mpbtn" id="btnCopyLink">Пригласить по ссылке</button>
     </div>
     <input class="invlink" id="inviteLink" readonly="" value="">
+      <div class="modpanel" id="lanHostPanel" style="border-color:rgba(142,230,216,.28);background:linear-gradient(145deg,rgba(16,35,38,.78),rgba(12,8,22,.82))">
+        <div style="font-size:11px;letter-spacing:.18em;color:#8ee6d8">ПРЯМОЕ ПОДКЛЮЧЕНИЕ · WEBRTC</div>
+        <div style="font-size:11px;line-height:1.6;color:#b9aed6;margin-top:6px">Создай лобби с этого телефона или компьютера. Друзья подключатся по коду через интернет — общий Wi-Fi не требуется.</div>
+        <div id="lanHostStatus" class="srvstat" aria-live="polite">Хостинг запускается при создании лобби</div>
+        <button class="mpbtn" id="btnCheckRoom" style="width:100%;margin-top:8px">Проверить доступность комнаты</button>
+        <div id="lanHostDiagnostics" class="netdiag">Ожидает создания комнаты</div>
+        <div id="lanHostAddresses" class="netdiag">Игровые данные передаются напрямую между устройствами. Для поиска друг друга используется бесплатный сервис соединения.</div>
+      </div>
     <div style="margin-top:10px;display:flex;gap:9px;align-items:center">
       <span class="lcode-l">ИМЯ</span>
       <input id="myName" maxlength="14" placeholder="Призрак" autocomplete="off" spellcheck="false" style="flex:1;padding:9px 11px;font-family:inherit;font-size:12.5px;letter-spacing:.08em;color:#eef6ff;background:rgba(9,6,18,.9);border:1px solid rgba(150,120,220,.36);border-radius:3px;outline:none">
