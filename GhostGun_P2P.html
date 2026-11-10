@@ -3346,6 +3346,29 @@ if(linkBox){
   linkBox.addEventListener("focus",()=>{ try{ linkBox.select(); }catch(e){} });
   linkBox.addEventListener("keydown",e=>e.stopPropagation());
 }
+
+/* Ссылка-приглашение: автоматический вход в комнату без окна ввода имени. */
+(function autoJoinFromInvite(){
+  let inviteCode="";
+  try{
+    const url=new URL(window.location.href);
+    inviteCode=String(url.searchParams.get("lobby")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+    if(inviteCode){
+      url.searchParams.delete("lobby");
+      history.replaceState(history.state,"",url.toString());
+    }
+  }catch(e){}
+  if(!inviteCode)return;
+  const savedName=(()=>{try{return localStorage.getItem("spectre:playerName")||"";}catch(e){return "";}})();
+  Net.name=(savedName||Net.name||"Призрак").trim().slice(0,14)||"Призрак";
+  const codeInput=document.getElementById("joinCode");
+  if(codeInput)codeInput.value=inviteCode;
+  const status=document.getElementById("lanHostStatus");
+  if(status)status.textContent="Открыта ссылка-приглашение · подключаемся к комнате "+inviteCode+"…";
+  window.setTimeout(()=>{
+    if(!Net.role && !Net.peer && !Net.srvReady)Net.join(inviteCode);
+  },350);
+})();
 /* ================= ЗАГРУЗКА GLB ================= */
 function loadGLB(file, onModel, onError){
   const reader=new FileReader();
