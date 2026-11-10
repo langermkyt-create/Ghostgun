@@ -2492,12 +2492,19 @@ const Net={
     return this.peerLoadPromise;
   },
   peerOptions(){
-    /* Явно фиксируем официальный PeerJS Cloud signaling endpoint.
-       ICE-конфигурация содержит STUN и штатные TURN-реле PeerJS. */
+    /* PeerJS Cloud используется только для сигнализации.
+       TURN rstream ниже — временные учётные данные (TTL 1 час). */
+    const turnUsername="v1:1794293491:api:-:c1a0b5109f7d7f6540cfe525";
+    const turnCredential="/O9cvO+dwvNHW7hwpjnO6CqCcTLnG+qeN6aEK1NlUS4=";
     return {host:"0.peerjs.com",port:443,path:"/",secure:true,debug:2,config:{iceServers:[
       {urls:"stun:stun.l.google.com:19302"},
       {urls:"stun:stun1.l.google.com:19302"},
-      {urls:["turn:eu-0.turn.peerjs.com:3478","turn:us-0.turn.peerjs.com:3478"],username:"peerjs",credential:"peerjsp"}
+      {urls:[
+        "turn:aws-global-1.c.rstream.io:3478?transport=udp",
+        "turn:aws-global-1.c.rstream.io:3478?transport=tcp",
+        "turns:aws-global-1.c.rstream.io:5349?transport=udp",
+        "turns:aws-global-1.c.rstream.io:5349?transport=tcp"
+      ],username:turnUsername,credential:turnCredential}
     ],sdpSemantics:"unified-plan"}};
   },
   peerIdForCode(code){return "ghostgun-"+String(code||"").toLowerCase();},
