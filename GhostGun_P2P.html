@@ -2583,7 +2583,7 @@ const Net={
     }
     if(this.peer!==host||this.peerRole!=="host"||this.code!==code)return false;
     if(host.disconnected||!host.open){show("Хост не зарегистрирован на сервере PeerJS (код "+code+")",true);return false;}
-    show((reason||"Проверка")+" · хост зарегистрирован; проверяем подключение независимого клиента…",false);
+    show((reason||"Проверка")+" · PeerJS сообщает, что хост зарегистрирован. Проверяем отдельное подключение из этого же приложения…",false);
     let probe=null,conn=null,timer=null,done=false;
     return await new Promise(resolve=>{
       const finish=(ok,msg)=>{
@@ -2603,7 +2603,7 @@ const Net={
           conn.on("open",()=>{try{conn.send({t:"ghostgun-health-check",token});}catch(e){finish(false,"Канал проверки не смог отправить запрос");}});
           conn.on("data",m=>{
             if(m&&m.t==="ghostgun-health-ack"&&m.token===token&&m.code===code)
-              finish(true,"✓ Комната "+code+" реально доступна: независимый клиент подключился и получил ответ от хоста");
+              finish(true,"Проверка PeerJS прошла: отдельный тестовый клиент внутри этого приложения подключился к хосту. Внешний браузер этой проверкой не проверяется.");
           });
           conn.on("error",e=>finish(false,"Ошибка проверки подключения: "+((e&&e.type)||e&&e.message||"WebRTC")));
         });
@@ -2622,22 +2622,59 @@ const Net={
       this.code=this.genCode();this.role="host";this.mode=mode||"ffa";this.started=false;this.ready={};this.remoteMembers={};this.lastMembers=null;
       const peer=new PeerCtor(this.peerIdForCode(this.code),this.peerOptions());this.peer=peer;
       this.peerStatus("Регистрируем комнату…");
+      let reconnectAttempts=0;
       peer.on("open",id=>{
         if(epoch!==this.peerEpoch)return;
+        reconnectAttempts=0;
         this.id=id;this.srvId=null;this.members=[this.selfMember()];
-        this.peerStatus("Комната создана · передай друзьям код "+this.code);
+        this.peerStatus("Комната зарегистрирована на PeerJS · код "+this.code);
         this.showLobby();this.broadcastLobby();
-        setTimeout(()=>{if(this.peer===peer&&this.peerRole==="host")this.checkHostAvailability("После создания");},900);
+        setTimeout(()=>{if(this.peer===peer&&this.peerRole==="host")this.checkHostAvailability("Проверка после регистрации");},900);
       });
       peer.on("connection",conn=>{if(conn&&conn.metadata&&conn.metadata.ghostgunHealthProbe)this.peerAttachHealthProbe(conn);else this.peerAttachHostConnection(conn);});
       peer.on("error",err=>{
         if(epoch!==this.peerEpoch)return;
         const code=err&&err.type||"";
         if(code==="unavailable-id"&&attempt<4){this.createP2P(mode,attempt+1);return;}
+        if(["network","socket-error","socket-closed","server-error","disconnected"].includes(code)){
+          this.peerStatus("Проблема связи с PeerJS ("+code+"). Пытаемся восстановить регистрацию комнаты…",true);
+          setTimeout(()=>{
+            if(epoch!==this.peerEpoch||this.peer!==peer||peer.destroyed)return;
+            if(peer.disconnected){try{peer.reconnect();}catch(e){this.peerStatus("Не удалось восстановить регистрацию: "+(e&&e.message||"ошибка"),true);}}
+          },900);
+          return;
+        }
+        if(code==="unavailable-id"){
+          this.peerStatus("ID комнаты занят другим подключением. Эта комната больше не может принимать игроков; создай новое лобби.",true);
+          this.fail("PeerJS сообщил unavailable-id: регистрация с прежним ID не восстановилась.");
+          return;
+        }
         this.peerStatus("Не удалось создать комнату: "+(err&&err.message||code||"ошибка соединения"),true);
-        this.fail("Не удалось создать комнату. Попробуй ещё раз или проверь доступ к PeerJS.");
+        this.fail("Не удалось создать комнату. Проверь доступ к PeerJS.");
       });
-      peer.on("disconnected",()=>{if(epoch!==this.peerEpoch)return;this.peerStatus("Потеряна связь с сервером комнат. Восстанавливаем регистрацию…",true);try{if(!peer.destroyed)peer.reconnect();}catch(e){this.peerStatus("Не удалось восстановить связь с сервером комнат: "+(e&&e.message||"ошибка"),true);}});
+      peer.on("disconnected",()=>{
+        if(epoch!==this.peerEpoch)return;
+        this.peerStatus("Потеряна связь с сервером PeerJS. Восстанавливаем тот же ID комнаты…",true);
+        const retry=()=>{
+          if(epoch!==this.peerEpoch||this.peer!==peer||peer.destroyed||!peer.disconnected)return;
+          reconnectAttempts++;
+          if(reconnectAttempts>5){
+            this.peerStatus("Не удалось вернуть регистрацию комнаты после 5 попыток. Создай новое лобби и не закрывай игру.",true);
+            this.fail("Потеряна регистрация комнаты на PeerJS.");
+            return;
+          }
+          try{
+            peer.reconnect();
+            setTimeout(()=>{
+              if(epoch===this.peerEpoch&&this.peer===peer&&peer.disconnected)retry();
+            },2500);
+          }catch(e){
+            this.peerStatus("Ошибка восстановления ("+reconnectAttempts+"/5): "+(e&&e.message||"PeerJS"),true);
+            setTimeout(retry,1800);
+          }
+        };
+        setTimeout(retry,700);
+      });
     }catch(err){this.peerRole=null;this.peerStatus(err.message||"Не удалось запустить WebRTC",true);this.fail(err.message||"Не удалось запустить прямое соединение.");}
   },
   async joinP2P(code){
